@@ -38,7 +38,7 @@ class World:
         last = 0
         plains = 0
 
-        for i in range(1400):
+        for i in range(400):
             tmp = [4]
             for j in range(256):
                 if j < random_height - 4:

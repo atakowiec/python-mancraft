@@ -101,14 +101,14 @@ class Player:
         self.pos[0] = round(self.pos[0], 3)
         self.pos[1] = round(self.pos[1], 3)
 
-        if self.pos[1] > len(self.game.world.blocks[0]) - 3:
-            self.pos[1] = len(self.game.world.blocks[0]) - 3
-        elif self.pos[1] < 0:
-            self.pos[1] = 0
-        elif self.pos[0] > len(self.game.world.blocks)-3:
-            self.pos[0] = len(self.game.world.blocks)-3
-        elif self.pos[0] < 1:
-            self.pos[0] = 1
+        # if self.pos[1] > len(self.game.world.blocks[0]) - 3:
+        #     self.pos[1] = len(self.game.world.blocks[0]) - 3
+        # elif self.pos[1] < 0:
+        #     self.pos[1] = 0
+        # elif self.pos[0] > len(self.game.world.blocks)-3:
+        #     self.pos[0] = len(self.game.world.blocks)-3
+        # elif self.pos[0] < 1:
+        #     self.pos[0] = 1
 
         if pressed[pygame.K_DOWN]:
             self.pos[1] -= 2

@@ -8,7 +8,7 @@ class DroppedItem:
         self.world = self.game.world
 
         self.type = item_id
-        self.pos = [pos[0] + 0.5, pos[1] + 0.5]
+        self.pos = [pos[0] + 0.25 + (random.randint(1, 10)-5)/10, pos[1] + 0.25]
         self.size = (10, 10)
         self.life_time = 0
         self.to_remove = False
@@ -20,9 +20,6 @@ class DroppedItem:
         if velocity is None:
             velocity = [0, 0]
         self.velocity = velocity
-
-        if velocity[0] == 0:
-            self.velocity[0] = (random.randint(0, 2)-1)/10
 
     def update(self):
         self.immunite -= 1
@@ -38,7 +35,18 @@ class DroppedItem:
         # Mechanika Kolizji z podłożem oraz podskakiwanie itemow
         if self.world.blocks[int(self.pos[0])][int(self.pos[1]-0.1)] not in self.game.IGNORED_BLOCKS or self.world.blocks[int(self.pos[0]+0.2)][int(self.pos[1]-0.1)] not in self.game.IGNORED_BLOCKS:
             self.vector = [0, 0]
+            self.pos[1] = int(self.pos[1]+0.1)
             self.velocity[1] = 0.005
+
+        # Kolizje z blokami obok
+        if self.world.blocks[int(self.pos[0] + 0.5)][int(self.pos[1])] not in self.game.IGNORED_BLOCKS:
+            self.pos[0] = int(self.pos[0])+0.5
+            self.vector[0] = 0
+            self.velocity[0] = 0
+        elif self.world.blocks[int(self.pos[0] - 0.1)][int(self.pos[1])] not in self.game.IGNORED_BLOCKS:
+            self.pos[0] = int(self.pos[0]+0.8)
+            self.vector[0] = 0
+            self.velocity[0] = 0
 
         # Mechanika przylatywania itemow do gracza
         if self.to_remove:

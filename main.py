@@ -2,7 +2,6 @@ import math
 import time
 import pygame
 from player import Player
-from itemstack import ItemStack
 from world import *
 from dropped_item import DroppedItem
 from inventory_view import InventoryView
