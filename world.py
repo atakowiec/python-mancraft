@@ -31,8 +31,9 @@ class World:
         # 1000x600
         self.blocks = []
         self.block_types = blocks
-        # tmp = []
-        random.seed(1)
+        self.time_in_game = 0
+
+        # generator variables
         random_height = random.randint(55, 80)
         tree_pos = random.randint(6, 10)
         last = 0

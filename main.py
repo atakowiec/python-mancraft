@@ -26,8 +26,12 @@ class Game:
         self.BACKGROUND_COLOR = (30, 144, 255)
         self.IGNORED_BLOCKS = (0, 6, 7)
         self.ITEM_HINT_FONT = pygame.font.Font("freesansbold.ttf", 18)
+        self.TICK = 30
+        self.DAY_DURATION = 60 * self.TICK  # in seconds multiplied by tick amount
+        self.MOON_IMAGE = pygame.image.load("textures/environment/moon.png")
+        self.SUN_IMAGE = pygame.image.load("textures/environment/sun.png")
 
-        self.inventory_viev = InventoryView(self)
+        self.inventory_view = InventoryView(self)
 
         # Items on ground
         self.items_on_ground = []
@@ -36,10 +40,10 @@ class Game:
             if i == 2:
                 self.player.pos[1] = e+1
                 # break
-        self.tick = 30
+
         while self.running:
             timer = time.time()
-            self.clock.tick(self.tick)
+            self.clock.tick(self.TICK)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
@@ -82,7 +86,6 @@ class Game:
                 if self.screen_state == "inventory":
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         self.mouse_click = event.button
-
             self.screen.fill(self.BACKGROUND_COLOR)
             if self.screen_state == "game":
                 self.update()
@@ -90,14 +93,16 @@ class Game:
             elif self.screen_state == "inventory":
                 self.update()
                 self.player.update()
-                self.inventory_viev.update()
+                self.inventory_view.update()
 
             self.tick_time = round(time.time()-timer, 4)
-            self.screen.blit(self.font.render(f"FPS: {round((1000/self.tick)*30/((time.time()-timer)*1000), 1)}", False, (0,0,0)), (10, 10))
+            self.screen.blit(self.font.render(f"FPS: {round((1000 / self.TICK) * 30 / ((time.time() - timer) * 1000), 1)}", False, (0, 0, 0)), (10, 10))
             self.mouse_click = None
             pygame.display.flip()
 
     def update(self):
+        self.world.time_in_game += 1
+
         # Obsługa niszczenia bloków/wykrywania kliknięć
         mouse_clicked = False
         mouse_pos = pygame.mouse.get_pos()
@@ -109,6 +114,36 @@ class Game:
         last_block = self.clicked_block
         line_length = math.sqrt(((mouse_pos[0]-500)**2)+((mouse_pos[1]-420)**2))
         temp_color = (60,60,60)
+
+        # mechanizm dnia i nocy
+        day_lightness = pygame.Surface(self.screen.get_size(), 32).convert_alpha()
+        time_of_day = self.world.time_in_game % self.DAY_DURATION
+        day_percent = (time_of_day/self.DAY_DURATION)
+        dark = 220
+
+        if 0 < day_percent <= 0.05:
+            # sunrise
+            day_lightness.fill((0,0,0,dark - (dark*20*day_percent)))
+            self.screen.blit(day_lightness, (0, 0))
+        elif 0.05 < day_percent <= 0.45:
+            # day
+            day_lightness.fill((0,0,0,0))
+            self.screen.blit(day_lightness, (0, 0))
+        elif 0.45 < day_percent <= 0.5:
+            # sunset
+            day_lightness.fill((0,0,0,0 + (dark*20*(day_percent-0.45))))
+            self.screen.blit(day_lightness, (0, 0))
+        else:
+            # night
+            day_lightness.fill((0,0,0,dark))
+            self.screen.blit(day_lightness, (0,0))
+
+        moon_x = self.screen.get_width()*day_percent*2-self.screen.get_width()
+        sun_x = (self.screen.get_width()+64)*day_percent*2-64
+        self.screen.blit(self.MOON_IMAGE, (moon_x, 500-get_sun_height(moon_x)))
+        self.screen.blit(self.SUN_IMAGE, (sun_x, 500-get_sun_height(sun_x)))
+
+        self.screen.blit(self.font.render(f"TIME: {int((24*day_percent+6)%24)}:{int((((24*day_percent+6)%24)-(((24*day_percent+6)%24)//1))*60)}", False, (0, 0, 0)), (10, 30))
 
         # mechanizm stawiania blokow
         place_block = False
@@ -153,7 +188,7 @@ class Game:
         for i, item in enumerate(self.items_on_ground):
             item.update()
 
-            if item.life_time > 5000 or (item.to_remove and item.life_time > self.tick*1):
+            if item.life_time > 5000 or (item.to_remove and item.life_time > self.TICK * 1):
                 del self.items_on_ground[i]
                 self.player.add_to_inventory(item)
             else:
@@ -181,6 +216,10 @@ class Game:
 
     def create_item_on_ground(self, item_id, pos, immunite=0, velocity=None):
         self.items_on_ground.append(DroppedItem(self, item_id, pos, immunite=immunite, velocity=velocity))
+
+
+def get_sun_height(x):
+    return ((-x*x)/625) + (1.6*x)
 
 
 if __name__ == '__main__':
