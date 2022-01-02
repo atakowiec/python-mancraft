@@ -5,7 +5,7 @@ from player import Player
 from world import *
 from dropped_item import DroppedItem
 from inventory_view import InventoryView
-
+from crafting_view import CraftingView
 
 class Game:
     def __init__(self):
@@ -27,11 +27,12 @@ class Game:
         self.IGNORED_BLOCKS = (0, 6, 7)
         self.ITEM_HINT_FONT = pygame.font.Font("freesansbold.ttf", 18)
         self.TICK = 30
-        self.DAY_DURATION = 60 * self.TICK  # in seconds multiplied by tick amount
+        self.DAY_DURATION = 600 * self.TICK  # in seconds multiplied by tick amount
+
         self.MOON_IMAGE = pygame.image.load("textures/environment/moon.png")
         self.SUN_IMAGE = pygame.image.load("textures/environment/sun.png")
 
-        self.inventory_view = InventoryView(self)
+        self.to_update = [self, self.player]
 
         # Items on ground
         self.items_on_ground = []
@@ -78,8 +79,10 @@ class Game:
                         self.player.current_slot = 8
                     if event.key == pygame.K_e:
                         if self.screen_state == "game":
+                            self.to_update = [self, self.player, InventoryView(self)]
                             self.screen_state = "inventory"
                         elif self.screen_state == "inventory":
+                            self.to_update = [self, self.player]
                             self.screen_state = "game"
 
                 # Keys/clicks in inventory
@@ -87,13 +90,9 @@ class Game:
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         self.mouse_click = event.button
             self.screen.fill(self.BACKGROUND_COLOR)
-            if self.screen_state == "game":
-                self.update()
-                self.player.update()
-            elif self.screen_state == "inventory":
-                self.update()
-                self.player.update()
-                self.inventory_view.update()
+
+            for i in self.to_update:
+                i.update()
 
             self.tick_time = round(time.time()-timer, 4)
             self.screen.blit(self.font.render(f"FPS: {round((1000 / self.TICK) * 30 / ((time.time() - timer) * 1000), 1)}", False, (0, 0, 0)), (10, 10))
@@ -147,9 +146,11 @@ class Game:
 
         # mechanizm stawiania blokow
         place_block = False
+        block_interact = False
         if pygame.mouse.get_pressed(3)[2]:
             if self.player.inventory[self.player.current_slot] is not None:
                 place_block = True
+            block_interact = True
 
         # Głowna pętla przechądząca po wszystkich blokach i obslugująca render, klikniecia itp
         for col in range(int(self.player.pos[0]-26), int(self.player.pos[0]+27)):
@@ -158,6 +159,11 @@ class Game:
                     for row in range(int(self.player.pos[1]-10), int(self.player.pos[1]+25)):
                         j = self.world.blocks[col][row]
                         rect = pygame.Rect(round((col - self.player.pos[0]+25)*20 + self.player.damage_earthquake[0], 2), round(640 - ((row-self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1], 2), 20, 20)
+                        if block_interact and rect.collidepoint(mouse_pos) and line_length <= self.player.range_of_hand*20:
+                            # Interakcja z blokami
+                            if self.world.blocks[col][row] == 14:
+                                self.to_update = [self, CraftingView(self)]
+                                self.screen_state = "inventory"
                         if j != 0:
                             if j in (6, 7, 2, 3) or self.world.blocks[col-1][row] == 0 or self.world.blocks[col+1][row] == 0 or self.world.blocks[col][row-1] == 0 or self.world.blocks[col][row+1] == 0:
                                 self.screen.blit(self.world.block_types[j][2], (round((col - self.player.pos[0]+25)*20 + self.player.damage_earthquake[0], 2), round(640 - ((row-self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1], 2)))
@@ -169,13 +175,13 @@ class Game:
                                 if rect.collidepoint(mouse_pos):
                                     temp_color = (220,0,0)
                                 pygame.draw.rect(self.screen, (10,10,10), rect)
-
                         elif place_block and rect.collidepoint(mouse_pos) and line_length <= self.player.range_of_hand*20:
                             self.world.blocks[col][row] = self.player.inventory[self.player.current_slot].item_id
                             if self.player.inventory[self.player.current_slot].count == 1:
                                 self.player.inventory[self.player.current_slot] = None
                             else:
                                 self.player.inventory[self.player.current_slot].count -= 1
+
                 except IndexError:
                     pass
 

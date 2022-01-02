@@ -11,6 +11,7 @@ class Player:
         self.velocity = 0
         self.range_of_hand = 8  # in blocks
         self.inventory = [None for _ in range(36)]
+        self.inventory[0] = ItemStack(14)
         # self.inventory = [ItemStack((i % 13) + 1, random.randint(1, 10000)) for i in range(36)]
         self.current_slot = 0
         self.hp = 20

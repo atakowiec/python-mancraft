@@ -1,13 +1,12 @@
 import pygame
 from itemstack import ItemStack
-from dropped_item import DroppedItem
 
 
-class InventoryView:
+class CraftingView:
     def __init__(self, game):
         self.game = game
         self.item_on_mouse = None
-        self.crafting_slots = [None, None, None, None, None]
+        self.crafting_slots = [None for _ in range(9)]
         self.font = pygame.font.Font("freesansbold.ttf", 20)
 
     def update(self):
@@ -63,8 +62,8 @@ class InventoryView:
                 if rect.collidepoint(mouse_pos):
                     hovered_item = itemstack
 
-        # wyswietlanie craftingu
-        clicked_on_crafting = self.display_crafting_2x2(590, 70)
+        # wyświetlanie crafting
+        clicked_on_crafting = self.display_crafting_3x3(590, 70)
 
         if clicked_on_crafting is None and clicked is None and self.game.mouse_click == 1 and self.item_on_mouse is not None:
             v = 0.2
@@ -89,10 +88,10 @@ class InventoryView:
             pygame.draw.rect(self.game.screen, (120, 120, 120), (mouse_pos[0] - 5, mouse_pos[1] - render.get_height() - 10, render.get_width() + 10, render.get_height() + 10), border_radius=5)
             self.game.screen.blit(self.game.ITEM_HINT_FONT.render(hovered_item.name, False, (0, 0, 0)), (mouse_pos[0], mouse_pos[1] - render.get_height() - 5))
 
-    def display_crafting_2x2(self, x, y):
+    def display_crafting_3x3(self, x, y):
         clicked = None
         hovered = None
-        for i in range(4):
+        for i in range(9):
             rect = pygame.Rect(x + (60*(i % 2)), y+(60*(i//2)), 50, 50)
 
             pygame.draw.rect(self.game.screen, (50,50,50), rect, border_radius=5)
@@ -200,3 +199,4 @@ def get_crafting_recipe(shape):
         if i[0] == shape:
             return i[1]
     return None
+
