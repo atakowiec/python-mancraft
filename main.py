@@ -37,9 +37,8 @@ class Game:
         self.SUN_IMAGE = pygame.image.load("textures/environment/sun.png")
 
         self.to_update = [self, self.player]
-
-        # Items on ground
         self.items_on_ground = []
+        self.entity_list = []
 
         for e, i in enumerate(self.world.blocks[len(self.world.blocks)//2]):
             if i == 2:
@@ -153,7 +152,6 @@ class Game:
                         if j != 0:
                             if j in (6, 7, 2, 3) or self.world.blocks[col-1][row] == 0 or self.world.blocks[col+1][row] == 0 or self.world.blocks[col][row-1] == 0 or self.world.blocks[col][row+1] == 0:
                                 self.screen.blit(self.world.block_types[j][2], (round((col - self.player.pos[0]+25)*20 + self.player.damage_earthquake[0], 2), round(640 - ((row-self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1], 2)))
-
                             else:
                                 if rect.collidepoint(mouse_pos):
                                     line_color = (220,0,0)
@@ -214,6 +212,10 @@ class Game:
                             round(640 - ((self.clicked_block[1] - self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1], 2)))
             else:
                 self.breaking_time = 0
+
+        # Update kazdego moba
+        for entity in self.entity_list:
+            entity.update()
 
     def create_item_on_ground(self, item_id, pos, immunite=0, velocity=None):
         self.items_on_ground.append(DroppedItem(self, item_id, pos, immunite=immunite, velocity=velocity))

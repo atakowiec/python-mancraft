@@ -9,7 +9,7 @@ blocks = {
         2: ("grass", .1, pygame.image.load("./textures/blocks/grass_block.png")),  # grass
         3: ("dirt", .1, pygame.image.load("./textures/blocks/dirt.png")),  # dirt
         4: ("bedrock", 1000000, pygame.image.load("./textures/blocks/bedrock.png")),  # bedrock
-        5: ("water", 1.5, pygame.image.load("./textures/blocks/stone.png")),  # water
+        5: ("cobblestone", 1.5, pygame.image.load("./textures/blocks/cobblestone.png")),
         6: ("wood log", 1.5, pygame.image.load("./textures/blocks/oak_log.png")),  # wood
         7: ("leaves", 0.01, pygame.image.load("./textures/blocks/oak_leaves.png")),  # leaves
         8: ("diamond ore", 2, pygame.image.load("./textures/blocks/diamond_ore.png")),  # diamond
@@ -19,7 +19,8 @@ blocks = {
         12: ("lapis ore", 2, pygame.image.load("./textures/blocks/lapis_ore.png")),  # lapis
         13: ("wood plank", 2, pygame.image.load("./textures/blocks/oak_planks.png")),
         14: ("crafting table", 2, pygame.image.load("./textures/blocks/crafting_table.png")),
-    }
+        15: ("furnace", 2, pygame.image.load("./textures/blocks/furnace.png")),
+}
 
 destroy_stages = [
     pygame.image.load(f"./textures/blocks/destroy_stage_{i}.png") for i in range(10)

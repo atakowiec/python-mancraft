@@ -2,7 +2,7 @@ import random
 import pygame.draw
 from world import blocks as block_types
 from itemstack import ItemStack
-
+from entity import Entity
 
 class Player:
     def __init__(self, game):
@@ -12,6 +12,7 @@ class Player:
         self.range_of_hand = 8  # in blocks
         self.inventory = [None for _ in range(36)]
         self.inventory[0] = ItemStack(14)
+        self.inventory[1] = ItemStack(5, 10)
         # self.inventory = [ItemStack((i % 13) + 1, random.randint(1, 10000)) for i in range(36)]
         self.current_slot = 0
         self.hp = 20
@@ -120,7 +121,11 @@ class Player:
         if pressed[pygame.K_RIGHT]:
             self.pos[0] += 1
         if pressed[pygame.K_F1]:
-            self.game.world.time_in_game += 5
+            self.game.world.time_in_game += (self.game.DAY_DURATION*0.01)
+        if pressed[pygame.K_F2]:
+            self.game.entity_list.append(Entity(self.game, 1, [self.pos[0], self.pos[1]]))
+        if pressed[pygame.K_F3]:
+            self.game.entity_list.append(Entity(self.game, 0, [self.pos[0], self.pos[1]]))
 
     def has_enough_space(self, item):
         for k, v in enumerate(self.inventory):
