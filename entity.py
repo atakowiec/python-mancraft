@@ -4,13 +4,13 @@ from variables import entity_types
 
 
 class Entity:
-    def __init__(self, game, entity_type, pos):
+    def __init__(self, game, entity_type, pos, task=0, task_duration=5):
         self.game = game
         self.type = entity_type
         self.pos = pos
         self.stats = entity_types[entity_type]
-        self.task = 0
-        self.task_duration = 5
+        self.task = task
+        self.task_duration = task_duration
         self.velocity = 0
 
         self.direction = 2
