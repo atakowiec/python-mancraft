@@ -12,6 +12,10 @@ class Main:
         pygame.display.set_caption("Minecraft 3.0")
         self.state = "main_menu"
         self.clock = pygame.time.Clock()
+        self.clicked_once = []
+        self.clicked_hold = []
+        self.mouse_press = []
+        self.mouse_hold = []
 
         # constants
         self.TICK = 30
@@ -23,6 +27,10 @@ class Main:
         self.main_menu = MainMenu(self)
 
         while self.running:
+            self.clicked_once = []
+            self.clicked_hold = []
+            self.mouse_hold = []
+            self.mouse_press = []
             self.clock.tick(30)
 
             for event in pygame.event.get():
@@ -30,9 +38,21 @@ class Main:
                     if self.game is not None:
                         self.game.save_world()
                     self.running = False
+                if event.type == pygame.KEYDOWN:
+                    self.clicked_once.append(event)
+                    if self.state == "main_menu" and self.main_menu.input_focus and self.main_menu.screen_state == 2:
+                        if event.key == pygame.K_BACKSPACE:
+                            self.main_menu.entered_name = self.main_menu.entered_name[:-1]
+                        else:
+                            self.main_menu.entered_name += event.unicode
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    self.mouse_press.append(event.button)
+            self.clicked_hold = pygame.key.get_pressed()
+            self.mouse_hold = pygame.mouse.get_pressed(3)
 
             if self.state == "main_menu":
                 self.main_menu.update()
+
             elif self.state == "game":
                 self.game.general_update()
 
@@ -48,4 +68,3 @@ class Main:
 
 if __name__ == '__main__':
     Main()
-

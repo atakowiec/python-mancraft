@@ -1,5 +1,4 @@
 import random
-
 from variables import entity_types
 
 
@@ -12,14 +11,18 @@ class Entity:
         self.task = task
         self.task_duration = task_duration
         self.velocity = 0
-
         self.direction = 2
 
     def update(self):
+        # wyswietlanie moba
+        self.game.screen.blit(self.stats[self.direction], (round((self.pos[0] - self.game.player.pos[0] + 25) * 20 + self.game.player.damage_earthquake[0], 2), round(660 - self.stats[4][1] - ((self.pos[1] - self.game.player.pos[1] + 10) * 20) + self.game.player.damage_earthquake[1], 2)))
+
+        if self.game.paused:
+            return 0
         vector = [0, round(self.velocity, 2)-0.1]
 
         if self.velocity >= 0:
-            self.velocity *= 0.1
+            self.velocity *= 0.9
 
         if self.task == -1:
             vector[0] -= 0.1
@@ -57,28 +60,28 @@ class Entity:
             for i in range(self.stats[4][1]//20+1):
                 if self.game.world.blocks[int(self.pos[0] + vector[0])][int(self.pos[1])+i] not in self.game.IGNORED_BLOCKS:
                     vector[0] = 0
-                    self.jump(vector[1])
+                    self.jump()
 
             if self.game.world.blocks[int(self.pos[0] + vector[0])][int(self.pos[1] + (self.stats[4][1]/20))] not in self.game.IGNORED_BLOCKS:
                 vector[0] = 0
-                self.jump(vector[1])
+                self.jump()
 
         elif vector[0] > 0:
             # sprawdzanie bloku po prawej
             for i in range(self.stats[4][1]//20+1):
                 if self.game.world.blocks[int(self.pos[0] + vector[0] + self.stats[4][0]/20)][int(self.pos[1])+i] not in self.game.IGNORED_BLOCKS:
                     vector[0] = 0
-                    self.jump(vector[1])
+                    self.jump()
 
             if self.game.world.blocks[int(self.pos[0] + vector[0] + self.stats[4][0]/20)][int(self.pos[1] + (self.stats[4][1]/20))] not in self.game.IGNORED_BLOCKS:
                 vector[0] = 0
-                self.jump(vector[1])
+                self.jump()
 
         self.pos = [self.pos[i]+vector[i] for i in range(2)]
 
-        # wyswietlanie moba
-        self.game.screen.blit(self.stats[self.direction], (round((self.pos[0] - self.game.player.pos[0] + 25) * 20 + self.game.player.damage_earthquake[0], 2), round(660 - self.stats[4][1] - ((self.pos[1] - self.game.player.pos[1] + 10) * 20) + self.game.player.damage_earthquake[1], 2)))
-
-    def jump(self, vector):
-        if -0.05 < vector < 0.05:
-            self.velocity = 1
+    def jump(self):
+        for i in range(self.stats[4][0]//20+1):
+            if self.game.world.blocks[int(self.pos[0]+i)][int(self.pos[1]-0.1)] not in self.game.IGNORED_BLOCKS:
+                self.velocity = .3
+                # TODO dodac sprawdzanie bloku nad glowa
+                break

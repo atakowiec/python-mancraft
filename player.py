@@ -18,7 +18,7 @@ class Player:
         self.fall_distance = 0
         pygame.font.get_init()
         self.font = pygame.font.Font("freesansbold.ttf", 20)
-        self.heart_images = (pygame.image.load("./images/left_heart.png"), pygame.image.load("./images/right_heart.png"), pygame.image.load("./images/left_heart_empty.png"), pygame.image.load("./images/right_heart_empty.png"))
+        self.heart_images = (pygame.image.load("textures/gui/left_heart.png"), pygame.image.load("textures/gui/right_heart.png"), pygame.image.load("textures/gui/left_heart_empty.png"), pygame.image.load("textures/gui/right_heart_empty.png"))
         self.damage_earthquake_duration = 0
         self.damage_earthquake = [0, 0]
 
@@ -121,7 +121,7 @@ class Player:
         if pressed[pygame.K_F1]:
             self.game.world.time_in_game += (self.game.DAY_DURATION*0.01)
         if pressed[pygame.K_F2]:
-            self.game.entity_list.append(Entity(self.game, 1, [self.pos[0], self.pos[1]]))
+            self.game.world.blocks[int(self.pos[0])][int(self.pos[1])-1] = random.randint(1, 15)
         if pressed[pygame.K_F3]:
             self.game.entity_list.append(Entity(self.game, 0, [self.pos[0], self.pos[1]]))
 

@@ -1,12 +1,15 @@
 import pygame
 import os
 from game import Game
+import shutil
+
 
 class MainMenu:
     def __init__(self, game):
         self.game = game
         self.screen = game.screen
         self.screen_state = 0
+        self.delete_world = False
 
         self.BACKGROUND = pygame.image.load("textures/backgrounds/main_menu.png")
         self.FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 90)
@@ -22,19 +25,18 @@ class MainMenu:
 
         # Loading world list
         self.scroll_offset = 0
-        self.world_list = []
-        for i in os.listdir(os.path.join(self.game.GAME_PATH, "saves")):
-            with open(os.path.join(self.game.GAME_PATH, f"saves/{i}/main_data.txt")) as file:
-                lines = file.readlines()
-                lines = [i.strip() for i in lines]
-                self.world_list.append(lines)
+        self.world_list = self.get_world_list()
 
         self.world_list_surface = pygame.Surface((420, 100*len(self.world_list)), pygame.SRCALPHA)
         self.world_list_surface.convert_alpha()
 
+        self.entered_name = ""
+        self.input_focus = False
+        self.cursor_counter = 0
+
     def update(self):
         # tło
-
+        self.screen.fill((0,0,0))
         self.screen.blit(self.BACKGROUND, (0, 0))
         if self.screen_state == 0:
             # Main menu
@@ -92,6 +94,12 @@ class MainMenu:
             if rect.collidepoint(mouse_pos):
                 hovered[1] = True
                 color = (100, 100, 100)
+            if self.delete_world:
+                color = (90, 90, 90)
+                text = self.SMALL_FONT.render("Click world to delete", False, (255, 255, 255))
+                self.screen.blit(self.SMALL_FONT.render("Click world to delete", False, (0,0,0)), (177 - text.get_width() / 2, 252))
+                self.screen.blit(text, (175 - text.get_width() / 2, 250))
+
             pygame.draw.rect(self.screen, (40, 40, 40), rect)
             pygame.draw.rect(self.screen, color, (55, 155, 240, 70))
             text = self.SMALL_FONT.render("Delete World", False, (255, 255, 255))
@@ -136,7 +144,7 @@ class MainMenu:
                 date = self.SMALL_FONT.render(world_data[2], False, (255,255,255))
                 color = (140, 140, 140)
                 if rect.collidepoint(mouse_pos):
-                    hovered_world = i+1
+                    hovered_world = i
                     color = (100, 100, 100)
                 pygame.draw.rect(self.world_list_surface, (40, 40, 40), pygame.Rect(0, i*100, 400, 90))
                 pygame.draw.rect(self.world_list_surface, color, pygame.Rect(5, i*100+5, 390, 80))
@@ -145,18 +153,101 @@ class MainMenu:
 
             self.screen.blit(self.world_list_surface, (450, 50+self.scroll_offset))
 
-            if pygame.mouse.get_pressed(3)[0]:
-                if hovered[1]:
-                    pass
-                elif hovered[2]:
-                    self.screen_state = 0
-                elif hovered[3]:
+            if self.game.mouse_hold[0]:
+                if hovered[3]:
                     if not(self.scroll_offset < 0 and self.scroll_offset < -self.world_list_surface.get_height()+120):
                         self.scroll_offset -= 10
                 elif hovered[4]:
                     if self.scroll_offset < 0:
                         self.scroll_offset += 10
+
+            if 1 in self.game.mouse_press:
+                if hovered[0]:
+                    self.screen_state = 2
+                elif hovered[1]:
+                    self.delete_world = not self.delete_world
+                elif hovered[2]:
+                    self.screen_state = 0
                 elif hovered_world is not None:
-                    self.game.game = Game(self.game, hovered_world)
-                    self.game.state = "game"
-                    del self
+                    if not self.delete_world:
+                        self.game.game = Game(self.game, self.world_list[hovered_world][3])
+                        self.game.state = "game"
+                        del self
+                    else:
+                        # deleting world
+                        self.delete_world = False
+                        shutil.rmtree(os.path.join(self.game.GAME_PATH, f"saves/{self.world_list[hovered_world][3]}"))
+                        self.world_list = self.get_world_list()
+                        self.world_list_surface = pygame.Surface((420, 100 * len(self.world_list)), pygame.SRCALPHA)
+
+        elif self.screen_state == 2:
+            hovered = [False, False, False]
+            mouse_pos = pygame.mouse.get_pos()
+
+            rect = pygame.Rect(250, 50, 500, 80)
+            color = (140, 140, 140)
+            self.cursor_counter += 1
+            temp = ""
+            if rect.collidepoint(mouse_pos):
+                hovered[0] = True
+                color = (100, 100, 100)
+            if self.input_focus:
+                if self.cursor_counter % 40 < 20:
+                    temp = "|"
+                color = (90, 90, 90)
+
+            pygame.draw.rect(self.screen, (40, 40, 40), rect)
+            pygame.draw.rect(self.screen, color, (255, 55, 490, 70))
+            text = self.SMALL_FONT.render("Name:", False, (255, 255, 255))
+            self.screen.blit(text, (175 - text.get_width() / 2, 90 - text.get_height() / 2))
+            text = self.SMALL_FONT.render(self.entered_name + temp, False, (255, 255, 255))
+            self.screen.blit(text, (270, 90 - text.get_height() / 2))
+
+            rect = pygame.Rect(375, 150, 250, 80)
+            color = (140, 140, 140)
+            if rect.collidepoint(mouse_pos):
+                hovered[1] = True
+                color = (100, 100, 100)
+            pygame.draw.rect(self.screen, (40, 40, 40), rect)
+            pygame.draw.rect(self.screen, color, (380, 155, 240, 70))
+            text = self.SMALL_FONT.render("Create!", False, (255, 255, 255))
+            self.screen.blit(text, (500 - text.get_width() / 2, 190 - text.get_height() / 2))
+
+            rect = pygame.Rect(50, 520, 250, 80)
+            color = (140, 140, 140)
+            if rect.collidepoint(mouse_pos):
+                hovered[2] = True
+                color = (100, 100, 100)
+            pygame.draw.rect(self.screen, (40, 40, 40), rect)
+            pygame.draw.rect(self.screen, color, (55, 525, 240, 70))
+            text = self.SMALL_FONT.render("Go Back", False, (255, 255, 255))
+            self.screen.blit(text, (175 - text.get_width() / 2, 560 - text.get_height() / 2))
+
+            if pygame.mouse.get_pressed(3)[0]:
+                if hovered[0]:
+                    self.input_focus = True
+                else:
+                    self.input_focus = False
+                    if hovered[1]:
+                        if self.entered_name == "":
+                            self.entered_name = "New World"
+                        self.game.game = Game(self.game, -1, self.entered_name)
+                        self.game.state = "game"
+                        del self
+                    elif hovered[2]:
+                        self.screen_state = 1
+
+        pygame.display.flip()
+
+    def get_world_list(self):
+        temp = []
+        for i in os.listdir(os.path.join(self.game.GAME_PATH, "saves")):
+            try:
+                with open(os.path.join(self.game.GAME_PATH, f"saves/{i}/main_data.txt")) as file:
+                    lines = file.readlines()
+                    lines = [i.strip() for i in lines]
+                    lines.append(i)
+                    temp.append(lines)
+            except FileNotFoundError:
+                pass
+        return temp

@@ -9,7 +9,6 @@ class InventoryView:
         self.item_on_mouse = None
         self.crafting_slots = [None, None, None, None, None]
         self.font = pygame.font.Font("freesansbold.ttf", 20)
-        self.many_clicks_prot = False
 
     def update(self):
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
@@ -27,15 +26,15 @@ class InventoryView:
             rect = pygame.Rect(10 + (60*(i % 9)), 10+(60*(i//9)), 50, 50)
             pygame.draw.rect(self.game.screen, (50,50,50), rect, border_radius=5)
             pygame.draw.rect(self.game.screen, (120,120,120), (13 + (60*(i % 9)), 13+(60*(i//9)), 44, 44), border_radius=5)
-            if self.game.mouse_click[0] and rect.collidepoint(mouse_pos) and not self.many_clicks_prot:
+            if 1 in self.game.game.mouse_press and rect.collidepoint(mouse_pos):
                 clicked = -1
                 if itemstack is None or self.item_on_mouse is None or itemstack.item_id != self.item_on_mouse.item_id:
                     self.game.player.inventory[i], self.item_on_mouse = self.item_on_mouse, self.game.player.inventory[i]
                 else:
                     self.game.player.inventory[i].count += self.item_on_mouse.count
-                    self.item_on_mouse = None
+                    self.item_on_mouse = Noneeaw
 
-            elif self.game.mouse_click[2] and rect.collidepoint(mouse_pos) and not self.many_clicks_prot:
+            elif 3 in self.game.game.mouse_press and rect.collidepoint(mouse_pos):
                 clicked = -1
                 if itemstack is None and self.item_on_mouse is not None:
                     self.game.player.inventory[i] = ItemStack(self.item_on_mouse.item_id, 1)
@@ -68,7 +67,7 @@ class InventoryView:
         clicked_on_crafting = self.display_crafting_2x2(590, 70)
 
         # Wyrzucanie blokow
-        if clicked_on_crafting is None and clicked is None and self.game.mouse_click[0] and self.item_on_mouse is not None and not self.many_clicks_prot:
+        if clicked_on_crafting is None and clicked is None and self.item_on_mouse is not None and (1 in self.game.game.mouse_press or 3 in self.game.game.mouse_press):
             v = 0.2
             if (25*20)-mouse_pos[0] > 0:
                 v = -v
@@ -91,11 +90,6 @@ class InventoryView:
             pygame.draw.rect(self.game.screen, (120, 120, 120), (mouse_pos[0] - 5, mouse_pos[1] - render.get_height() - 10, render.get_width() + 10, render.get_height() + 10), border_radius=5)
             self.game.screen.blit(self.game.ITEM_HINT_FONT.render(hovered_item.name, False, (0, 0, 0)), (mouse_pos[0], mouse_pos[1] - render.get_height() - 5))
 
-        # multiclicks prot
-        if not self.game.mouse_click[0] and not self.game.mouse_click[2]:
-            self.many_clicks_prot = False
-        else:
-            self.many_clicks_prot = True
 
     def display_crafting_2x2(self, x, y):
         clicked = None
@@ -113,7 +107,7 @@ class InventoryView:
                 self.game.screen.blit(text, (-width+x+47+(60*(i % 2)), y+25+(60*(i//2))))
 
             if rect.collidepoint(pygame.mouse.get_pos()):
-                if self.game.mouse_click[0] or self.game.mouse_click[2]:
+                if 1 in self.game.game.mouse_press or 3 in self.game.game.mouse_press:
                     clicked = i
                 hovered = i
 
@@ -128,7 +122,7 @@ class InventoryView:
             self.game.screen.blit(text, (x+187-width, y + 55))
 
         if rect.collidepoint(pygame.mouse.get_pos()):
-            if self.game.mouse_click[0] or self.game.mouse_click[2]:
+            if 1 in self.game.game.mouse_press or 3 in self.game.game.mouse_press:
                 clicked = 4
             hovered = 4
 
@@ -141,7 +135,7 @@ class InventoryView:
             self.game.screen.blit(render, (mouse_pos[0], mouse_pos[1] - render.get_height() - 5))
 
         crafting_shape = [0,0,0,0]
-        if clicked is not None and not self.many_clicks_prot:
+        if clicked is not None:
             if clicked == 4:
                 if self.crafting_slots[4] is not None:
                     if self.item_on_mouse is None:
