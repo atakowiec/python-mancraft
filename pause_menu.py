@@ -29,8 +29,7 @@ class PauseMenu:
             color = (100, 100, 100)
         pygame.draw.rect(surface, (40, 40, 40), rect, border_radius=10)
         pygame.draw.rect(surface, color, pygame.Rect(305, 205, 390, 80), border_radius=10)
-        surface.blit(text,
-                         (500 - (text.get_width() / 2), 245 - text.get_height() / 2))
+        surface.blit(text, (500 - (text.get_width() / 2), 245 - text.get_height() / 2))
 
 
         text = self.MEDIUM_FONT.render("Return to main menu", False, (255,255,255))
@@ -41,8 +40,7 @@ class PauseMenu:
             color = (100, 100, 100)
         pygame.draw.rect(surface, (40, 40, 40), rect, border_radius=10)
         pygame.draw.rect(surface, color, pygame.Rect(305, 325, 390, 80), border_radius=10)
-        surface.blit(text,
-                         (500 - (text.get_width() / 2), 365 - text.get_height() / 2))
+        surface.blit(text, (500 - (text.get_width() / 2), 365 - text.get_height() / 2))
 
         if pygame.mouse.get_pressed(3)[0]:
             if hovered[0]:
@@ -54,6 +52,5 @@ class PauseMenu:
                 self.game.game.game = None
                 self.game.game.state = "main_menu"
                 self.game.game.main_menu.screen_state = 1
-
 
         self.screen.blit(surface, (0,0))

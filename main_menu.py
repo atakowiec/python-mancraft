@@ -141,7 +141,7 @@ class MainMenu:
                 rect = pygame.Rect(450, 50+self.scroll_offset+(i*100), 400, 90)
                 number = self.MEDIUM_FONT.render(str(i+1)+".", False, (255,255,255))
                 name = self.SMALL_FONT.render(world_data[1], False, (255,255,255))
-                date = self.SMALL_FONT.render(world_data[2], False, (255,255,255))
+                # date = self.SMALL_FONT.render(world_data[2], False, (255,255,255))
                 color = (140, 140, 140)
                 if rect.collidepoint(mouse_pos):
                     hovered_world = i
@@ -161,6 +161,13 @@ class MainMenu:
                     if self.scroll_offset < 0:
                         self.scroll_offset += 10
 
+            if 4 in self.game.mouse_press:
+                if not(self.scroll_offset < 0 and self.scroll_offset < -self.world_list_surface.get_height()+120):
+                    self.scroll_offset -= 20
+            if 5 in self.game.mouse_press:
+                if self.scroll_offset < 0:
+                    self.scroll_offset += 20
+
             if 1 in self.game.mouse_press:
                 if hovered[0]:
                     self.screen_state = 2
@@ -179,6 +186,7 @@ class MainMenu:
                         shutil.rmtree(os.path.join(self.game.GAME_PATH, f"saves/{self.world_list[hovered_world][3]}"))
                         self.world_list = self.get_world_list()
                         self.world_list_surface = pygame.Surface((420, 100 * len(self.world_list)), pygame.SRCALPHA)
+
 
         elif self.screen_state == 2:
             hovered = [False, False, False]
@@ -233,11 +241,16 @@ class MainMenu:
                             self.entered_name = "New World"
                         self.game.game = Game(self.game, -1, self.entered_name)
                         self.game.state = "game"
+                        self.world_list = self.get_world_list()
+                        self.world_list_surface = pygame.Surface((420, 100 * len(self.world_list)), pygame.SRCALPHA)
+                        self.input_focus = False
+                        self.entered_name = ""
                         del self
                     elif hovered[2]:
+                        self.entered_name = ""
+                        self.input_focus = False
                         self.screen_state = 1
 
-        pygame.display.flip()
 
     def get_world_list(self):
         temp = []

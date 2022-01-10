@@ -11,6 +11,7 @@ from crafting_view import CraftingView
 from pause_menu import PauseMenu
 from itemstack import ItemStack
 from entity import Entity
+from furnace_view import FurnaceView
 
 
 class Game:
@@ -21,6 +22,8 @@ class Game:
         self.player = Player(self)
         self.world = World()
         self.pause_menu = PauseMenu(self)
+        self.furnace_view = FurnaceView(self)
+        self.inventory_view = InventoryView(self)
 
         self.world_id = world_id
 
@@ -32,6 +35,8 @@ class Game:
         self.font = pygame.font.Font("freesansbold.ttf", 20)
         self.screen_state = "game"
         self.paused = False
+        self.line_length = 0
+        self.last_block = None
 
         self.mouse_click = pygame.mouse.get_pressed(3)
 
@@ -39,7 +44,7 @@ class Game:
         self.BACKGROUND_COLOR = (30, 144, 255)
         self.IGNORED_BLOCKS = (0, 6, 7)
         self.ITEM_HINT_FONT = pygame.font.Font("freesansbold.ttf", 18)
-        self.DAY_DURATION = 600 * self.TICK  # in seconds multiplied by tick amount
+        self.DAY_DURATION = 2 * self.TICK  # in seconds multiplied by tick amount
 
         self.MOON_IMAGE = pygame.image.load("textures/environment/moon.png")
         self.SUN_IMAGE = pygame.image.load("textures/environment/sun.png")
@@ -57,11 +62,13 @@ class Game:
         if self.world_id != -1 and self.world_id is not None and os.path.exists(os.path.join(self.game.GAME_PATH, f"saves/{self.world_id}")):
             self.load_world()
         else:
-            wid = str(len(os.listdir(os.path.join(self.game.GAME_PATH, "saves")))+1)
+            wid = len(os.listdir(os.path.join(self.game.GAME_PATH, "saves")))
+            while os.path.exists(os.path.join(self.game.GAME_PATH, f"saves/{wid}")):
+                wid += 1
             self.world_id = wid
-            os.makedirs(os.path.join(self.game.GAME_PATH, "saves/"+wid))
-            with open(os.path.join(self.game.GAME_PATH, "saves/"+wid+"/main_data.txt"), "w") as file:
-                file.write(wid+"\n")
+            os.makedirs(os.path.join(self.game.GAME_PATH, "saves/"+str(wid)))
+            with open(os.path.join(self.game.GAME_PATH, "saves/"+str(wid)+"/main_data.txt"), "w") as file:
+                file.write(str(wid)+"\n")
                 file.write(world_name+"\n")
                 date = datetime.datetime.now()
                 file.write(f"{date.day}.{date.month}.{date.year}\n")
@@ -96,11 +103,13 @@ class Game:
                 self.player.current_slot = 8
             if event.key == pygame.K_e:
                 if self.screen_state == "game":
-                    self.to_update = [self, self.player, InventoryView(self)]
+                    self.to_update = [self, self.inventory_view]
                     self.screen_state = "inventory"
                 elif self.screen_state == "inventory":
                     self.to_update = [self, self.player]
                     self.screen_state = "game"
+                    if self.furnace_view.opened_furnace is not None:
+                        self.furnace_view.opened_furnace = None
 
             if event.key == pygame.K_ESCAPE:
                 if self.screen_state == "game":
@@ -129,9 +138,9 @@ class Game:
             self.world.time_in_game += 1
 
         mouse_pos = pygame.mouse.get_pos()
-        last_block = self.clicked_block
+        self.last_block = self.clicked_block
         self.clicked_block = None
-        line_length = math.sqrt(((mouse_pos[0] - 500) ** 2) + ((mouse_pos[1] - 420) ** 2))
+        self.line_length = math.sqrt(((mouse_pos[0] - 500) ** 2) + ((mouse_pos[1] - 420) ** 2))
         line_color = (60, 60, 60)
 
         # mechanizm dnia i nocy
@@ -197,7 +206,7 @@ class Game:
 
         pygame.draw.rect(self.screen, (0, 0, 0), (
             25 * 20 + self.player.damage_earthquake[0], 640 - (11 * 20) + self.player.damage_earthquake[1], 20, 40))
-        if line_length > self.player.range_of_hand * 20:
+        if self.line_length > self.player.range_of_hand * 20:
             line_color = (220, 0, 0)
         pygame.draw.line(self.screen, line_color, (25 * 20 + 10, 640 - (11 * 20) + 10), (mouse_pos[0], mouse_pos[1]))
 
@@ -214,51 +223,7 @@ class Game:
                             item.pos[1] - self.player.pos[1]) <= 2 and self.player.has_enough_space(item):
                         item.has_been_picked()
 
-        # iterakcje z blokami
-        if self.mouse_click[2] and self.clicked_block is not None and line_length <= self.player.range_of_hand * 20 and not self.paused:
-            if not self.world.blocks[self.clicked_block[0]][self.clicked_block[1]]:
-                # jesli klikniety blok jest powietrzem
-                if self.player.inventory[self.player.current_slot] is not None:
-                    self.world.blocks[self.clicked_block[0]][self.clicked_block[1]] = self.player.inventory[
-                        self.player.current_slot].item_id
-                    if self.player.inventory[self.player.current_slot].count == 1:
-                        self.player.inventory[self.player.current_slot] = None
-                    else:
-                        self.player.inventory[self.player.current_slot].count -= 1
-            else:
-                # jesli nie jest powietrzem
-                clicked_block_type = self.world.blocks[self.clicked_block[0]][self.clicked_block[1]]
-                if clicked_block_type == 14:
-                    self.to_update = [self, CraftingView(self)]
-                    self.screen_state = "inventory"
-                elif clicked_block_type == 15:
-                    pass
-                    # TODO furnace interact
-        if self.mouse_click[0] and self.clicked_block is not None and line_length <= self.player.range_of_hand * 20 and not self.paused:
-            if self.clicked_block == last_block:
-                if self.world.blocks[self.clicked_block[0]][self.clicked_block[1]]:
-                    self.breaking_time += time.time()-self.tick_time
-                    breaking_time = self.world.block_types[self.world.blocks[self.clicked_block[0]][self.clicked_block[1]]][1]
-
-                    if self.breaking_time >= breaking_time:
-                        # Zniszczenie bloku
-                        self.breaking_time = 0
-                        self.create_item_on_ground(self.world.blocks[last_block[0]][last_block[1]], last_block)
-                        self.world.blocks[last_block[0]][last_block[1]] = 0
-                    else:
-                        # Block breaking animation
-                        nr = (self.breaking_time / breaking_time) // 0.1
-                        self.screen.blit(destroy_stages[int(nr)], (
-                            round(
-                                (self.clicked_block[0] - self.player.pos[0] + 25) * 20 + self.player.damage_earthquake[
-                                    0], 2),
-                            round(640 - ((self.clicked_block[1] - self.player.pos[1] + 10) * 20) +
-                                  self.player.damage_earthquake[1], 2)))
-            else:
-                self.breaking_time = 0
-
         self.screen.blit(self.font.render(f"FPS: {round((1000 / self.TICK) * 30 / ((time.time() - self.tick_time) * 1000), 1)}", False, (0, 0, 0)), (10, 10))
-        self.tick_time = time.time()
 
         # Update kazdego moba
         for entity in self.entity_list:
@@ -336,7 +301,7 @@ class Game:
 
         with open(default+"/dropped_items.txt", "w") as file:
             for item in self.items_on_ground:
-                file.write(f"{item.type} {item.pos[0]} {item.pos[1]} {item.life_time}")
+                file.write(f"{item.type} {item.pos[0]} {item.pos[1]} {item.life_time}\n")
         print("Saved: dropped_items")
 
         with open(default+"/world_data.txt", "w") as file:

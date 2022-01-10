@@ -1,8 +1,11 @@
 import random
 import pygame.draw
+import time
 from world import blocks as block_types
+from world import destroy_stages
 from itemstack import ItemStack
 from entity import Entity
+from crafting_view import CraftingView
 
 
 class Player:
@@ -109,6 +112,53 @@ class Player:
             self.pos[0] = len(self.game.world.blocks)-3
         elif self.pos[0] < 1:
             self.pos[0] = 1
+            
+        # iterakcje z blokami
+        if self.game.mouse_click[2] and self.game.clicked_block is not None and self.game.line_length <= self.game.player.range_of_hand * 20 and not self.game.paused:
+            if not self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]]:
+                # jesli klikniety blok jest powietrzem
+                if self.game.player.inventory[self.game.player.current_slot] is not None:
+                    self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]] = self.game.player.inventory[
+                        self.game.player.current_slot].item_id
+                    if self.game.player.inventory[self.game.player.current_slot].count == 1:
+                        self.game.player.inventory[self.game.player.current_slot] = None
+                    else:
+                        self.game.player.inventory[self.game.player.current_slot].count -= 1
+            else:
+                # jesli nie jest powietrzem
+                clicked_block_type = self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]]
+                if clicked_block_type == 14:
+                    self.game.to_update = [self.game, CraftingView(self.game)]
+                    self.game.screen_state = "inventory"
+                elif clicked_block_type == 15:
+                    self.game.to_update = [self.game, self.game.furnace_view]
+                    self.game.furnace_view.open_furnace(self.game.clicked_block)
+                    self.game.screen_state = "inventory"
+
+        if self.game.mouse_click[0] and self.game.clicked_block is not None and self.game.line_length <= self.game.player.range_of_hand * 20 and not self.game.paused:
+            if self.game.clicked_block == self.game.last_block:
+                if self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]]:
+                    self.game.breaking_time += time.time()-self.game.tick_time
+                    breaking_time = self.game.world.block_types[self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]]][1]
+
+                    if self.game.breaking_time >= breaking_time:
+                        # Zniszczenie bloku
+                        self.game.breaking_time = 0
+                        self.game.create_item_on_ground(self.game.world.blocks[self.game.last_block[0]][self.game.last_block[1]], self.game.last_block)
+                        self.game.world.blocks[self.game.last_block[0]][self.game.last_block[1]] = 0
+                    else:
+                        # Block breaking animation
+                        nr = (self.game.breaking_time / breaking_time) // 0.1
+                        self.game.screen.blit(destroy_stages[int(nr)], (
+                            round(
+                                (self.game.clicked_block[0] - self.game.player.pos[0] + 25) * 20 + self.game.player.damage_earthquake[
+                                    0], 2),
+                            round(640 - ((self.game.clicked_block[1] - self.game.player.pos[1] + 10) * 20) +
+                                  self.game.player.damage_earthquake[1], 2)))
+            else:
+                self.game.breaking_time = 0
+
+        self.game.tick_time = time.time()
 
         if pressed[pygame.K_DOWN]:
             self.pos[1] -= 2
@@ -124,6 +174,8 @@ class Player:
             self.game.world.blocks[int(self.pos[0])][int(self.pos[1])-1] = random.randint(1, 15)
         if pressed[pygame.K_F3]:
             self.game.entity_list.append(Entity(self.game, 0, [self.pos[0], self.pos[1]]))
+            
+        
 
     def has_enough_space(self, item):
         for k, v in enumerate(self.inventory):
