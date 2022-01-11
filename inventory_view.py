@@ -18,14 +18,12 @@ class InventoryView:
         mouse_pos = pygame.mouse.get_pos()
         mouse_pos = [mouse_pos[0]-surface_pos[0], mouse_pos[1]-surface_pos[1]]
         hovered_item = None
-        clicked = None
 
         for i, itemstack in enumerate(self.game.player.inventory):
             rect = pygame.Rect(235 + (60*(i % 9)), 335 + (60*(i//9)), 50, 50)
             pygame.draw.rect(surface, (50,50,50), rect, border_radius=5)
             pygame.draw.rect(surface, (120,120,120), (238+(60*(i % 9)), 338+(60*(i//9)), 44, 44), border_radius=5)
             if 1 in self.game.game.mouse_press and rect.collidepoint(mouse_pos):
-                clicked = i
                 if itemstack is None or self.item_on_mouse is None or itemstack.item_id != self.item_on_mouse.item_id:
                     self.game.player.inventory[i], self.item_on_mouse = self.item_on_mouse, self.game.player.inventory[i]
                 else:
@@ -33,7 +31,6 @@ class InventoryView:
                     self.item_on_mouse = None
 
             elif 3 in self.game.game.mouse_press and rect.collidepoint(mouse_pos):
-                clicked = i
                 if itemstack is None and self.item_on_mouse is not None:
                     self.game.player.inventory[i] = ItemStack(self.item_on_mouse.item_id, 1)
                     self.item_on_mouse.count -= 1
@@ -197,7 +194,42 @@ class InventoryView:
 
             self.crafting_slots[4] = get_crafting_recipe(crafting_shape)
 
-        # return clicked
+    def handle_inv_click(self, item_on_mouse, item_in_slot, blocked=False):
+        if blocked:
+            if item_in_slot is not None:
+                if item_on_mouse is None:
+                    return item_in_slot, None
+                elif item_in_slot.item_id == item_on_mouse.item_id:
+                    item_on_mouse.count += item_in_slot.count
+                    return item_on_mouse, None
+            return item_on_mouse, item_in_slot
+        else:
+            if 1 in self.game.game.mouse_press:
+                if item_in_slot is None or item_on_mouse is None or item_in_slot.item_id != item_on_mouse.item_id:
+                    item_in_slot, item_on_mouse = item_on_mouse, item_in_slot
+                else:
+                    item_in_slot.count += item_on_mouse.count
+                    item_on_mouse = None
+
+            elif 3 in self.game.game.mouse_press:
+                if item_in_slot is None and item_on_mouse is not None:
+                    item_in_slot = ItemStack(item_on_mouse.item_id, 1)
+                    item_on_mouse.count -= 1
+                    if item_on_mouse.count == 0:
+                        item_on_mouse = None
+                elif item_in_slot is not None and item_on_mouse is not None and item_in_slot.item_id == item_on_mouse.item_id:
+                    item_in_slot.count += 1
+                    item_on_mouse.count -= 1
+                    if item_on_mouse.count == 0:
+                        item_on_mouse = None
+                elif item_in_slot is not None and item_on_mouse is not None and item_in_slot.item_id != item_on_mouse.item_id:
+                    item_in_slot, item_on_mouse = item_on_mouse, item_in_slot
+                elif item_in_slot is not None and item_on_mouse is None:
+                    count = item_in_slot.count // 2
+                    item_on_mouse = ItemStack(item_in_slot.item_id, count)
+                    item_in_slot.count -= count
+
+            return item_on_mouse, item_in_slot
 
     def get_crafted_item(self):
         for i in range(4):

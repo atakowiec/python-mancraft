@@ -131,7 +131,7 @@ class Player:
                     self.game.to_update = [self.game, CraftingView(self.game)]
                     self.game.screen_state = "inventory"
                 elif clicked_block_type == 15:
-                    self.game.to_update = [self.game, self.game.furnace_view]
+                    self.game.to_update = [self.game]
                     self.game.furnace_view.open_furnace(self.game.clicked_block)
                     self.game.screen_state = "inventory"
 

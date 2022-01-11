@@ -229,6 +229,8 @@ class Game:
         for entity in self.entity_list:
             entity.update()
 
+        self.furnace_view.update()
+
     def create_item_on_ground(self, item_id, pos, immunite=0, velocity=None, life_time=0):
         self.items_on_ground.append(DroppedItem(self, item_id, pos, immunite=immunite, velocity=velocity, life_time=life_time))
 
