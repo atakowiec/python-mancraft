@@ -42,7 +42,7 @@ class Game:
 
         self.TICK = self.game.TICK
         self.BACKGROUND_COLOR = (30, 144, 255)
-        self.IGNORED_BLOCKS = (0, 6, 7)
+        self.IGNORED_BLOCKS = (0, 6, 7, 30, 31, 32, 33, 34, 35, 36)
         self.ITEM_HINT_FONT = pygame.font.Font("freesansbold.ttf", 18)
         self.DAY_DURATION = 600 * self.TICK  # in seconds multiplied by tick amount
 

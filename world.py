@@ -20,6 +20,14 @@ blocks = {
         13: ("wood plank", 2, pygame.image.load("./textures/blocks/oak_planks.png")),
         14: ("crafting table", 2, pygame.image.load("./textures/blocks/crafting_table.png")),
         15: ("furnace", 2, pygame.image.load("./textures/blocks/furnace.png")),
+
+        30: ("blue flower", .5, pygame.image.load("./textures/blocks/kwiat1.png")),
+        31: ("orange flower", .5, pygame.image.load("./textures/blocks/kwiat2.png")),
+        32: ("purple flower", .5, pygame.image.load("./textures/blocks/kwiat3.png")),
+        33: ("pink flower", .5, pygame.image.load("./textures/blocks/kwiat4.png")),
+        34: ("light blue flower", .5, pygame.image.load("./textures/blocks/kwiat5.png")),
+        35: ("green flower", .5, pygame.image.load("./textures/blocks/kwiat6.png")),
+        36: ("red flower", .5, pygame.image.load("./textures/blocks/kwiat7.png")),
 }
 
 destroy_stages = [
@@ -39,6 +47,7 @@ class World:
         tree_pos = random.randint(6, 10)
         last = 0
         plains = 0
+        flower_pos = random.randint(6, 10)
 
         for i in range(400):
             tmp = [4]
@@ -71,6 +80,14 @@ class World:
                 tmp[tree_height - 2], self.blocks[i - 4][tree_height - 2] = 7, 7
                 self.blocks[i - 1][tree_height - 3], self.blocks[i - 3][tree_height - 3] = 7, 7
                 tmp[tree_height - 3], self.blocks[i - 4][tree_height - 3] = 7, 7
+
+            if flower_pos == i:
+                if tmp[random_height+1] != 0:
+                    flower_pos += random.randint(1, 3)
+                else:
+                    flower_pos += random.randint(5, 15)
+                    tmp[random_height+1] = random.randint(30, 36)
+
             if plains > 0:
                 plains -= 1
                 add = 0
