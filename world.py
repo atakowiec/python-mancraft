@@ -10,7 +10,7 @@ blocks = {
         3: ("dirt", .1, pygame.image.load("./textures/blocks/dirt.png")),  # dirt
         4: ("bedrock", 1000000, pygame.image.load("./textures/blocks/bedrock.png")),  # bedrock
         5: ("cobblestone", 1.5, pygame.image.load("./textures/blocks/cobblestone.png")),
-        6: ("wood log", 1.5, pygame.image.load("./textures/blocks/oak_log.png")),  # wood
+        6: ("wood log", 0, pygame.image.load("./textures/blocks/oak_log.png")),  # wood
         7: ("leaves", 0.01, pygame.image.load("./textures/blocks/oak_leaves.png")),  # leaves
         8: ("diamond ore", 2, pygame.image.load("./textures/blocks/diamond_ore.png")),  # diamond
         9: ("gold ore", 2, pygame.image.load("./textures/blocks/gold_ore.png")),  # gold

@@ -44,7 +44,7 @@ class Game:
         self.BACKGROUND_COLOR = (30, 144, 255)
         self.IGNORED_BLOCKS = (0, 6, 7)
         self.ITEM_HINT_FONT = pygame.font.Font("freesansbold.ttf", 18)
-        self.DAY_DURATION = 2 * self.TICK  # in seconds multiplied by tick amount
+        self.DAY_DURATION = 600 * self.TICK  # in seconds multiplied by tick amount
 
         self.MOON_IMAGE = pygame.image.load("textures/environment/moon.png")
         self.SUN_IMAGE = pygame.image.load("textures/environment/sun.png")
@@ -168,8 +168,8 @@ class Game:
 
         moon_x = self.screen.get_width() * day_percent * 2 - self.screen.get_width()
         sun_x = (self.screen.get_width() + 64) * day_percent * 2 - 64
-        self.screen.blit(self.MOON_IMAGE, (moon_x, 500 - get_sun_height(moon_x)))
-        self.screen.blit(self.SUN_IMAGE, (sun_x, 500 - get_sun_height(sun_x)))
+        self.screen.blit(self.MOON_IMAGE, (moon_x - 32, 500 - get_sun_height(moon_x)))
+        self.screen.blit(self.SUN_IMAGE, (sun_x - 32, 500 - get_sun_height(sun_x)))
 
         self.screen.blit(self.font.render(
             f"TIME: {int((24 * day_percent + 6) % 24)}:{int((((24 * day_percent + 6) % 24) - (((24 * day_percent + 6) % 24) // 1)) * 60)}",

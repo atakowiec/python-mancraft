@@ -1,3 +1,5 @@
+import random
+
 import pygame
 import os
 from game import Game
@@ -10,18 +12,23 @@ class MainMenu:
         self.screen = game.screen
         self.screen_state = 0
         self.delete_world = False
+        self.splash_text = get_random_splash()
+        self.splash_scale = .9
+        self.splash_scale_change = -0.009
 
         self.BACKGROUND = pygame.image.load("textures/backgrounds/main_menu.png")
         self.FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 90)
         self.MEDIUM_FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 50)
         self.SMALL_FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 30)
+        self.TINY_FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 25)
         self.SMALL_NORMAL_FONT = pygame.font.Font("textures/fonts/Merriweather-Regular.ttf", 30)
 
         # components
         self.logo_light = self.FONT.render("Mankraft", False, (255, 255, 255))
         self.logo_dark = self.FONT.render("Mankraft", False, (0, 0, 0))
         self.st_button_text = self.SMALL_FONT.render("Singleplayer", False, (255, 255, 255))
-        self.nd_button_text = self.SMALL_FONT.render("Exit", False, (255, 255, 255))
+        self.nd_button_text = self.SMALL_FONT.render("Options", False, (255, 255, 255))
+        self.rd_button_text = self.SMALL_FONT.render("Exit", False, (255, 255, 255))
 
         # Loading world list
         self.scroll_offset = 0
@@ -34,8 +41,17 @@ class MainMenu:
         self.input_focus = False
         self.cursor_counter = 0
 
+        self.options_buttons = [
+            [50, 520, 250, 80, self.SMALL_FONT.render("Go back", False, (255, 255, 255))],
+            [700, 520, 250, 80, self.SMALL_FONT.render("Credits", False, (255, 255, 255))],
+            # [100, 100, 200, 100, self.SMALL_FONT.render("Exit", False, (255, 255, 255))],
+            # [100, 220, 200, 100, self.SMALL_FONT.render("Exit", False, (255, 255, 255))]
+        ]
+
+
     def update(self):
         # tło
+        mouse_pos = pygame.mouse.get_pos()
         self.screen.fill((0,0,0))
         self.screen.blit(self.BACKGROUND, (0, 0))
         if self.screen_state == 0:
@@ -44,9 +60,20 @@ class MainMenu:
             self.screen.blit(self.logo_dark, ((self.screen.get_width() - self.logo_light.get_width()) / 2 + 5, 55))
             self.screen.blit(self.logo_light, ((self.screen.get_width() - self.logo_light.get_width()) / 2, 50))
 
+            if self.splash_scale > .95 or self.splash_scale < 0.8:
+                self.splash_scale_change *= -1
+            self.splash_scale -= self.splash_scale_change
+
+            text = self.TINY_FONT.render(self.splash_text, False, (0,0,0))
+            text = pygame.transform.rotate(text, 25)
+            self.screen.blit(pygame.transform.scale(text, [int(i*self.splash_scale) for i in text.get_size()]), ((self.screen.get_width()+self.logo_light.get_width())/2 - text.get_width()/2, 50+self.logo_light.get_height()-text.get_height()/2))
+
+            text = self.TINY_FONT.render(self.splash_text, False, (255,255,255))
+            text = pygame.transform.rotate(text, 25)
+            self.screen.blit(pygame.transform.scale(text, [int(i*self.splash_scale) for i in text.get_size()]), ((self.screen.get_width()+self.logo_light.get_width())/2 - text.get_width()/2, 48+self.logo_light.get_height()-text.get_height()/2))
+
             # przyciski
-            mouse_pos = pygame.mouse.get_pos()
-            hovered = [False, False]
+            hovered = [False, False, False]
 
             rect = pygame.Rect(300, 200, 400, 90)
             color = (140, 140, 140)
@@ -68,16 +95,26 @@ class MainMenu:
             self.screen.blit(self.nd_button_text,
                              (500 - (self.nd_button_text.get_width() / 2), 365 - self.nd_button_text.get_height() / 2))
 
-            if pygame.mouse.get_pressed(3)[0]:
-                if hovered[1]:
-                    self.game.running = False
+            color = (140, 140, 140)
+            rect = pygame.Rect(300, 440, 400, 90)
+            if rect.collidepoint(mouse_pos):
+                hovered[2] = True
+                color = (100, 100, 100)
+            pygame.draw.rect(self.screen, (40, 40, 40), rect, border_radius=10)
+            pygame.draw.rect(self.screen, color, pygame.Rect(305, 445, 390, 80), border_radius=10)
+            self.screen.blit(self.rd_button_text, (500 - (self.rd_button_text.get_width() / 2), 485 - self.rd_button_text.get_height() / 2))
+
+            if 1 in self.game.mouse_press:
                 if hovered[0]:
                     self.screen_state = 1
+                elif hovered[1]:
+                    self.screen_state = 3
+                elif hovered[2]:
+                    self.game.running = False
 
         elif self.screen_state == 1:
             # world selector
             hovered = [False, False, False, False, False]
-            mouse_pos = pygame.mouse.get_pos()
 
             rect = pygame.Rect(50, 50, 250, 80)
             color = (140, 140, 140)
@@ -153,7 +190,7 @@ class MainMenu:
 
             self.screen.blit(self.world_list_surface, (450, 50+self.scroll_offset))
 
-            if self.game.mouse_hold[0]:
+            if 1 in self.game.mouse_press:
                 if hovered[3]:
                     if not(self.scroll_offset < 0 and self.scroll_offset < -self.world_list_surface.get_height()+120):
                         self.scroll_offset -= 10
@@ -190,7 +227,6 @@ class MainMenu:
 
         elif self.screen_state == 2:
             hovered = [False, False, False]
-            mouse_pos = pygame.mouse.get_pos()
 
             rect = pygame.Rect(250, 50, 500, 80)
             color = (140, 140, 140)
@@ -251,6 +287,55 @@ class MainMenu:
                         self.input_focus = False
                         self.screen_state = 1
 
+        elif self.screen_state == 3:
+            # options screen
+            text = self.MEDIUM_FONT.render("Options", False, (0,0,0))
+            self.screen.blit(text, (502 - text.get_width()/2, 22))
+            text = self.MEDIUM_FONT.render("Options", False, (255,255,255))
+            self.screen.blit(text, (500 - text.get_width()/2, 20))
+            hovered = None
+            for i, e in enumerate(self.options_buttons):
+                rect = pygame.Rect(e[0], e[1], e[2], e[3])
+                color = (140, 140, 140)
+                if rect.collidepoint(mouse_pos):
+                    hovered = i
+                    color = (100, 100, 100)
+                pygame.draw.rect(self.screen, (40, 40, 40), rect)
+                pygame.draw.rect(self.screen, color, (e[0]+5, e[1]+5, e[2]-10, e[3]-10))
+                self.screen.blit(e[4], (e[0]+e[2]/2 - e[4].get_width()/2, e[1]+e[3]/2 - e[4].get_height() / 2))
+
+            if 1 in self.game.mouse_press and hovered is not None:
+                if hovered == 0:
+                    self.screen_state = 0
+                elif hovered == 1:
+                    self.screen_state = 4
+
+        elif self.screen_state == 4:
+            # creators screen
+            text = self.MEDIUM_FONT.render("The creator", False, (0,0,0))
+            self.screen.blit(text, (502 - text.get_width()/2, 22))
+            text = self.MEDIUM_FONT.render("The creator", False, (255,255,255))
+            self.screen.blit(text, (500 - text.get_width()/2, 20))
+
+            text = self.FONT.render("Mateusz Cieszczyk", False, (0,0,0))
+            self.screen.blit(text, (505 - text.get_width()/2, 305))
+            text = self.FONT.render("Mateusz Cieszczyk", False, (255,255,255))
+            self.screen.blit(text, (500 - text.get_width()/2, 300))
+            text = self.FONT.render("-----------------", False, (0,0,0))
+            self.screen.blit(text, (505 - text.get_width()/2, 355))
+            text = self.FONT.render("-----------------", False, (255,255,255))
+            self.screen.blit(text, (500 - text.get_width()/2, 350))
+
+            rect = pygame.Rect(50, 520, 250, 80)
+            color = (140, 140, 140)
+            if rect.collidepoint(mouse_pos):
+                color = (100, 100, 100)
+                if 1 in self.game.mouse_press:
+                    self.screen_state = 3
+            pygame.draw.rect(self.screen, (40, 40, 40), rect)
+            pygame.draw.rect(self.screen, color, (55, 525, 240, 70))
+            text = self.SMALL_FONT.render("Go Back", False, (255, 255, 255))
+            self.screen.blit(text, (175 - text.get_width() / 2, 560 - text.get_height() / 2))
 
     def get_world_list(self):
         temp = []
@@ -264,3 +349,9 @@ class MainMenu:
             except FileNotFoundError:
                 pass
         return temp
+
+
+def get_random_splash():
+    with open("textures/gui/splashes.txt", encoding="utf-8") as file:
+
+        return random.choice(file.readlines()).strip()

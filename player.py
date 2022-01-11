@@ -114,7 +114,7 @@ class Player:
             self.pos[0] = 1
             
         # iterakcje z blokami
-        if self.game.mouse_click[2] and self.game.clicked_block is not None and self.game.line_length <= self.game.player.range_of_hand * 20 and not self.game.paused:
+        if 3 in self.game.game.mouse_press and self.game.clicked_block is not None and self.game.line_length <= self.game.player.range_of_hand * 20 and not self.game.paused:
             if not self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]]:
                 # jesli klikniety blok jest powietrzem
                 if self.game.player.inventory[self.game.player.current_slot] is not None:
