@@ -1,6 +1,7 @@
 import pygame
 from itemstack import ItemStack
 from variables import furnace_recipes, fuel_list
+import time
 
 
 class FurnaceView:
@@ -9,7 +10,7 @@ class FurnaceView:
         self.game = game
         # [(x, y), subject, fuel, result, fuel_left (tick), smelting_ticks, fuel_full]
         self.furnaces_data = []
-        self.ITEM_SMELTING_TIME = 0.1 * self.game.game.TICK
+        self.ITEM_SMELTING_TIME = 8 * self.game.game.TICK
 
         self.FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 40)
         self.MEDIUM_FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 30)
@@ -27,10 +28,10 @@ class FurnaceView:
         # Obsluga kazdego piecyka / wyswietlanie aktualnego
         for index, furnace in enumerate(self.furnaces_data):
             if furnace[1] is not None and furnace[1].item_id in furnace_recipes.keys() and (furnace[3] is None or furnace[3].item_id == furnace_recipes[furnace[1].item_id]):
-                # warunki kiedy MA SIE PRZEPALAC
+                # warunki kiedy MA SIE PRZEPALAC ↑
 
+                self.furnaces_data[index][5] += 1
                 if furnace[4] == 0:
-                    self.furnaces_data[index][5] += 1
                     if furnace[2] is not None and furnace[2].item_id in fuel_list.keys():
                         self.furnaces_data[index][4] = int(fuel_list[furnace[2].item_id]*self.ITEM_SMELTING_TIME)
                         self.furnaces_data[index][6] = int(fuel_list[furnace[2].item_id]*self.ITEM_SMELTING_TIME)

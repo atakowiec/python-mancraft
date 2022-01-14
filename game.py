@@ -12,6 +12,7 @@ from pause_menu import PauseMenu
 from itemstack import ItemStack
 from entity import Entity
 from furnace_view import FurnaceView
+from variables import block_type
 
 
 class Game:
@@ -24,6 +25,7 @@ class Game:
         self.pause_menu = PauseMenu(self)
         self.furnace_view = FurnaceView(self)
         self.inventory_view = InventoryView(self)
+        self.block_type = block_type
 
         self.world_id = world_id
 
@@ -79,6 +81,8 @@ class Game:
 
         for i in self.to_update:
             i.update()
+
+        self.tick_time = time.time()
 
     def update(self):
         # pressed
@@ -191,7 +195,7 @@ class Game:
 
                         if j != 0:
                             if j in (6, 7, 2, 3) or self.world.blocks[col - 1][row] == 0 or self.world.blocks[col + 1][row] == 0 or self.world.blocks[col][row - 1] == 0 or self.world.blocks[col][row + 1] == 0:
-                                self.screen.blit(self.world.block_types[j][2], (
+                                self.screen.blit(self.block_type[j]["txt"], (
                                     round((col - self.player.pos[0] + 25) * 20 + self.player.damage_earthquake[0], 2),
                                     round(
                                         640 - ((row - self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1],
@@ -235,47 +239,49 @@ class Game:
         self.items_on_ground.append(DroppedItem(self, item_id, pos, immunite=immunite, velocity=velocity, life_time=life_time))
 
     def load_world(self):
-        save_dir = os.path.join(self.game.GAME_PATH, f"saves/{self.world_id}")
-        # Ladowanie blokow swiata
-        with open(save_dir+"/world.txt") as file:
-            self.world.blocks = []
-            for col in file.readlines():
-                temp = []
-                for row in col.split(maxsplit=len(col.split())-1):
-                    temp.append(int(row))
-                self.world.blocks.append(temp)
+        try:
+            save_dir = os.path.join(self.game.GAME_PATH, f"saves/{self.world_id}")
+            # Ladowanie blokow swiata
+            with open(save_dir+"/world.txt") as file:
+                self.world.blocks = []
+                for col in file.readlines():
+                    temp = []
+                    for row in col.split(maxsplit=len(col.split())-1):
+                        temp.append(int(row))
+                    self.world.blocks.append(temp)
 
-        # Ladowanie ekwipunku i pozycji
-        with open(save_dir+"/player.txt") as file:
-            lines = file.readlines()
-            self.player.pos = [float(i) for i in lines[0].split(" ", maxsplit=2)]
-            del lines[0]
-            for index, item in enumerate(lines):
-                item = item.replace("\n", "")
-                if item != "None":
-                    item_data = item.split()
-                    self.player.inventory[index] = ItemStack(int(item_data[0]), int(item_data[1]))
-                else:
-                    self.player.inventory[index] = None
+            # Ladowanie ekwipunku i pozycji
+            with open(save_dir+"/player.txt") as file:
+                lines = file.readlines()
+                self.player.pos = [float(i) for i in lines[0].split(" ", maxsplit=2)]
+                del lines[0]
+                for index, item in enumerate(lines):
+                    item = item.replace("\n", "")
+                    if item != "None":
+                        item_data = item.split()
+                        self.player.inventory[index] = ItemStack(int(item_data[0]), int(item_data[1]))
+                    else:
+                        self.player.inventory[index] = None
 
-        # Ladowanie entities
-        with open(save_dir+"/entity.txt") as file:
-            self.entity_list = []
-            for entity_data in file.readlines():
-                entity_data = entity_data.replace("\n", "").split()
-                self.entity_list.append(Entity(self, int(entity_data[0]), [float(entity_data[3]), float(entity_data[4])], int(entity_data[1]), float(entity_data[2])))
+            # Ladowanie entities
+            with open(save_dir+"/entity.txt") as file:
+                self.entity_list = []
+                for entity_data in file.readlines():
+                    entity_data = entity_data.replace("\n", "").split()
+                    self.entity_list.append(Entity(self, int(entity_data[0]), [float(entity_data[3]), float(entity_data[4])], int(entity_data[1]), float(entity_data[2])))
 
-        # Ladowanie dropped items
-        with open(save_dir+"/dropped_items.txt") as file:
-            self.items_on_ground = []
-            for dropped_item in file.readlines():
-                dropped_item = dropped_item.replace("\n", "").split()
-                self.create_item_on_ground(int(dropped_item[0]), [float(dropped_item[1]), float(dropped_item[2])], life_time=int(dropped_item[3]))
+            # Ladowanie dropped items
+            with open(save_dir+"/dropped_items.txt") as file:
+                self.items_on_ground = []
+                for dropped_item in file.readlines():
+                    dropped_item = dropped_item.replace("\n", "").split()
+                    self.create_item_on_ground(int(dropped_item[0]), [float(dropped_item[1]), float(dropped_item[2])], life_time=int(dropped_item[3]))
 
-        # Ladowanie ustawien swiata
-        with open(save_dir+"/world_data.txt") as file:
-            self.world.time_in_game = float(file.readlines()[0].replace("\n", ""))
-
+            # Ladowanie ustawien swiata
+            with open(save_dir+"/world_data.txt") as file:
+                self.world.time_in_game = float(file.readlines()[0].replace("\n", ""))
+        except FileNotFoundError:
+            print("Save file not found, creating..")
 
     def save_world(self):
         default = os.path.join(self.game.GAME_PATH, "saves/"+str(self.world_id))
@@ -309,6 +315,15 @@ class Game:
         with open(default+"/world_data.txt", "w") as file:
             file.write(f"{self.world.time_in_game}")
         print("Saved: world_data")
+
+        with open(default+"/furnaces.txt", "w") as file:
+            for furnace_data in self.furnace_view.furnaces_data:
+                temp = ""
+                for i in furnace_data:
+                    temp += (str(i) + " ")
+                file.write(temp[:-1])
+                # TODO make furnace saved
+        print("Saved: furnaces")
 
 
 def get_sun_height(x):

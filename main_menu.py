@@ -44,6 +44,7 @@ class MainMenu:
         self.options_buttons = [
             [50, 520, 250, 80, self.SMALL_FONT.render("Go back", False, (255, 255, 255))],
             [700, 520, 250, 80, self.SMALL_FONT.render("Credits", False, (255, 255, 255))],
+            [50, 120, 900, 80, self.SMALL_FONT.render("Tu kiedys beda opcje typu rozmiar ekranu czy przyblizenie", False, (255, 255, 255))],
             # [100, 100, 200, 100, self.SMALL_FONT.render("Exit", False, (255, 255, 255))],
             # [100, 220, 200, 100, self.SMALL_FONT.render("Exit", False, (255, 255, 255))]
         ]
@@ -190,7 +191,7 @@ class MainMenu:
 
             self.screen.blit(self.world_list_surface, (450, 50+self.scroll_offset))
 
-            if 1 in self.game.mouse_press:
+            if self.game.mouse_hold[0]:
                 if hovered[3]:
                     if not(self.scroll_offset < 0 and self.scroll_offset < -self.world_list_surface.get_height()+120):
                         self.scroll_offset -= 10
@@ -312,19 +313,21 @@ class MainMenu:
 
         elif self.screen_state == 4:
             # creators screen
-            text = self.MEDIUM_FONT.render("The creator", False, (0,0,0))
+            text = self.MEDIUM_FONT.render("Credits", False, (0,0,0))
             self.screen.blit(text, (502 - text.get_width()/2, 22))
-            text = self.MEDIUM_FONT.render("The creator", False, (255,255,255))
+            text = self.MEDIUM_FONT.render("Credits", False, (255,255,255))
             self.screen.blit(text, (500 - text.get_width()/2, 20))
 
-            text = self.FONT.render("Mateusz Cieszczyk", False, (0,0,0))
-            self.screen.blit(text, (505 - text.get_width()/2, 305))
-            text = self.FONT.render("Mateusz Cieszczyk", False, (255,255,255))
-            self.screen.blit(text, (500 - text.get_width()/2, 300))
-            text = self.FONT.render("-----------------", False, (0,0,0))
-            self.screen.blit(text, (505 - text.get_width()/2, 355))
-            text = self.FONT.render("-----------------", False, (255,255,255))
-            self.screen.blit(text, (500 - text.get_width()/2, 350))
+            text = self.MEDIUM_FONT.render("Wszystko (prawie): Mateusz Cieszczyk", False, (0,0,0))
+            self.screen.blit(text, (505 - text.get_width()/2+3, 203))
+            text = self.MEDIUM_FONT.render("Wszystko (prawie): Mateusz Cieszczyk", False, (255,255,255))
+            self.screen.blit(text, (505 - text.get_width()/2, 200))
+
+            temp = 505 - text.get_width()/2
+            text = self.SMALL_FONT.render("Kwiaty i chmury: Karol Lukiewski", False, (0,0,0))
+            self.screen.blit(text, (temp+3, 303))
+            text = self.SMALL_FONT.render("Kwiaty i chmury: Karol Lukiewski", False, (255,255,255))
+            self.screen.blit(text, (temp, 300))
 
             rect = pygame.Rect(50, 520, 250, 80)
             color = (140, 140, 140)

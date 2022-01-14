@@ -51,9 +51,10 @@ class InventoryView:
             if itemstack is not None:
                 # pygame.draw.rect(self.game.screen, itemstack.txt, (25 + (60*(i % 9)), 25+(60*(i//9)), 20, 20))
                 surface.blit(itemstack.txt, (250 + (60*(i % 9)), 350+(60*(i//9))))
-                text = self.game.font.render(str(itemstack.count), False, (255, 255, 255))
-                width = text.get_size()[0]
-                surface.blit(text, (288 + (60*(i % 9)) - width, 371+(60*(i//9))))
+                if itemstack.count > 1:
+                    text = self.game.font.render(str(itemstack.count), False, (255, 255, 255))
+                    width = text.get_size()[0]
+                    surface.blit(text, (288 + (60*(i % 9)) - width, 371+(60*(i//9))))
 
                 if rect.collidepoint(mouse_pos[0], mouse_pos[1]):
                     hovered_item = itemstack
@@ -116,9 +117,10 @@ class InventoryView:
 
             if self.crafting_slots[i] is not None:
                 self.game.screen.blit(self.crafting_slots[i].txt, (x + 15 + (60*(i % 2)), y+15+(60*(i//2))))
-                text = self.font.render(str(self.crafting_slots[i].count), False, (255, 255, 255))
-                width = text.get_size()[0]
-                self.game.screen.blit(text, (-width+x+47+(60*(i % 2)), y+25+(60*(i//2))))
+                if self.crafting_slots[i].count > 1:
+                    text = self.font.render(str(self.crafting_slots[i].count), False, (255, 255, 255))
+                    width = text.get_size()[0]
+                    self.game.screen.blit(text, (-width+x+47+(60*(i % 2)), y+25+(60*(i//2))))
 
             if rect.collidepoint(pygame.mouse.get_pos()):
                 if 1 in self.game.game.mouse_press or 3 in self.game.game.mouse_press:
@@ -131,9 +133,10 @@ class InventoryView:
 
         if self.crafting_slots[4] is not None:
             self.game.screen.blit(self.crafting_slots[4].txt, (x + 155, y + 45))
-            text = self.font.render(str(self.crafting_slots[4].count), False, (255, 255, 255))
-            width = text.get_size()[0]
-            self.game.screen.blit(text, (x+187-width, y + 55))
+            if self.crafting_slots[4].count:
+                text = self.font.render(str(self.crafting_slots[4].count), False, (255, 255, 255))
+                width = text.get_size()[0]
+                self.game.screen.blit(text, (x+187-width, y + 55))
 
         if rect.collidepoint(pygame.mouse.get_pos()):
             if 1 in self.game.game.mouse_press or 3 in self.game.game.mouse_press:
@@ -148,7 +151,7 @@ class InventoryView:
             pygame.draw.rect(self.game.screen, (120, 120, 120), (mouse_pos[0] - 5, mouse_pos[1] - render.get_height() - 10, render.get_width() + 10, render.get_height() + 10), border_radius=5)
             self.game.screen.blit(render, (mouse_pos[0], mouse_pos[1] - render.get_height() - 5))
 
-        crafting_shape = [0,0,0,0]
+        crafting_shape = [[0,0],[0,0]]
         if clicked is not None:
             if clicked == 4:
                 if self.crafting_slots[4] is not None:
@@ -188,11 +191,11 @@ class InventoryView:
                         self.crafting_slots[clicked].count -= count
             for i in range(4):
                 if self.crafting_slots[i] is None:
-                    crafting_shape[i] = 0
+                    crafting_shape[i//2][i % 2] = 0
                 else:
-                    crafting_shape[i] = self.crafting_slots[i].item_id
+                    crafting_shape[i//2][i % 2] = self.crafting_slots[i].item_id
 
-            self.crafting_slots[4] = get_crafting_recipe(crafting_shape)
+            self.crafting_slots[4] = self.get_crafting_recipe(crafting_shape)
 
     def handle_inv_click(self, item_on_mouse, item_in_slot, blocked=False):
         if blocked:
@@ -239,16 +242,38 @@ class InventoryView:
                     self.crafting_slots[i] = None
         self.crafting_slots[4] = None
 
+    def get_crafting_recipe(self, shape):
+        shape = get_default_combination(shape)
+        for id, item in self.game.block_type.items():
+            try:
+                for recipe in item["crafting_recipe"]:
+                    if recipe == shape:
+                        return ItemStack(id, item["crafting_amount"])
+            except KeyError:
+                pass
+        return None
 
-def get_crafting_recipe(shape):
-    recipes = (
-        ([0,0,0,6], ItemStack(13, 4)),
-        ([0,0,6,0], ItemStack(13, 4)),
-        ([0,6,0,0], ItemStack(13, 4)),
-        ([6,0,0,0], ItemStack(13, 4)),
-        ([13,13,13,13], ItemStack(14, 1)),
-    )
-    for i in recipes:
-        if i[0] == shape:
-            return i[1]
-    return None
+
+def get_default_combination(shape):
+    w = 0
+    for i in shape:
+        w = max(w, len(i))
+
+    for i in range(w-1, -1, -1):
+        remove = True
+        for j in shape:
+            if j[i] != 0:
+                remove = False
+        if remove:
+            for j in range(len(shape)):
+                shape[j].pop(i)
+
+    for _ in range(len(shape[0])):
+        for i in range(len(shape)):
+            if shape[i][-1] == 0:
+                shape[i].pop(-1)
+    for i in range(len(shape)-1, -1, -1):
+        if not shape[i]:
+            shape.pop(i)
+
+    return shape

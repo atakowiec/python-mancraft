@@ -1,7 +1,6 @@
 import random
 import pygame.draw
 import time
-from world import blocks as block_types
 from world import destroy_stages
 from itemstack import ItemStack
 from entity import Entity
@@ -38,9 +37,10 @@ class Player:
             if self.inventory[i] is not None:
                 # pygame.draw.rect(self.game.screen, self.inventory[i].txt, (245 + (60*i), 25, 20, 20))
                 self.game.screen.blit(self.inventory[i].txt, (245 + (60*i), 25))
-                text = self.font.render(str(self.inventory[i].count), False, (255, 255, 255))
-                width = text.get_size()[0]
-                self.game.screen.blit(text, (273 + (60 * i) - width, 36))
+                if self.inventory[i].count > 1:
+                    text = self.font.render(str(self.inventory[i].count), False, (255, 255, 255))
+                    width = text.get_size()[0]
+                    self.game.screen.blit(text, (273 + (60 * i) - width, 36))
 
         # Wyświetlanie hp
         for i in range(self.max_hp):
@@ -117,7 +117,7 @@ class Player:
         if 3 in self.game.game.mouse_press and self.game.clicked_block is not None and self.game.line_length <= self.game.player.range_of_hand * 20 and not self.game.paused:
             if not self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]]:
                 # jesli klikniety blok jest powietrzem
-                if self.game.player.inventory[self.game.player.current_slot] is not None:
+                if self.game.player.inventory[self.game.player.current_slot] is not None and self.game.player.inventory[self.game.player.current_slot].type == "block":
                     self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]] = self.game.player.inventory[
                         self.game.player.current_slot].item_id
                     if self.game.player.inventory[self.game.player.current_slot].count == 1:
@@ -139,13 +139,25 @@ class Player:
             if self.game.clicked_block == self.game.last_block:
                 if self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]]:
                     self.game.breaking_time += time.time()-self.game.tick_time
-                    breaking_time = self.game.world.block_types[self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]]][1]
+                    breaking_time = self.game.block_type[self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]]]["breaking_time"]
 
                     if self.game.breaking_time >= breaking_time:
                         # Zniszczenie bloku
                         self.game.breaking_time = 0
-                        self.game.create_item_on_ground(self.game.world.blocks[self.game.last_block[0]][self.game.last_block[1]], self.game.last_block)
+                        block_id = self.game.world.blocks[self.game.last_block[0]][self.game.last_block[1]]
+                        drop_list = self.game.block_type[block_id]["drop"]
+                        amount_list = self.game.block_type[block_id]["amount"]
+                        probability = self.game.block_type[block_id]["drop_probability"]*1000
+                        if random.randint(0, 1000) < (probability % 1000):
+                            amount_list = [i+1 for i in amount_list]
+
+                        for drop in drop_list:
+                            for _ in range(random.choice(amount_list)):
+                                self.game.create_item_on_ground(drop, self.game.last_block)
+
                         self.game.world.blocks[self.game.last_block[0]][self.game.last_block[1]] = 0
+                        # TODO add fortuna and 'tools' here
+
                     else:
                         # Block breaking animation
                         nr = (self.game.breaking_time / breaking_time) // 0.1
@@ -157,8 +169,6 @@ class Player:
                                   self.game.player.damage_earthquake[1], 2)))
             else:
                 self.game.breaking_time = 0
-
-        self.game.tick_time = time.time()
 
         if pressed[pygame.K_DOWN]:
             self.pos[1] -= 2

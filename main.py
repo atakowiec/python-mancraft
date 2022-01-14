@@ -2,6 +2,7 @@ import pygame
 from main_menu import MainMenu
 from game import Game
 import os
+import copy
 
 
 class Main:
@@ -31,7 +32,7 @@ class Main:
             self.clicked_hold = []
             self.mouse_hold = []
             self.mouse_press = []
-            self.clock.tick(30)
+            self.clock.tick(self.TICK)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -48,7 +49,7 @@ class Main:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     self.mouse_press.append(event.button)
             self.clicked_hold = pygame.key.get_pressed()
-            self.mouse_hold = pygame.mouse.get_pressed(3)
+            self.mouse_hold = pygame.mouse.get_pressed(5)
 
             if self.state == "main_menu":
                 self.main_menu.update()

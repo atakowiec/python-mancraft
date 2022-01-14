@@ -55,9 +55,10 @@ class CraftingView:
 
             if self.crafting_slots[i] is not None:
                 self.game.screen.blit(self.crafting_slots[i].txt, (x + 15 + (60 * (i % 3)), y + 15 + (60 * (i // 3))))
-                text = self.font.render(str(self.crafting_slots[i].count), False, (255, 255, 255))
-                width = text.get_size()[0]
-                self.game.screen.blit(text, (-width + x + 47 + (60 * (i % 3)), y + 25 + (60 * (i // 3))))
+                if self.crafting_slots[i].count > 1:
+                    text = self.font.render(str(self.crafting_slots[i].count), False, (255, 255, 255))
+                    width = text.get_size()[0]
+                    self.game.screen.blit(text, (-width + x + 47 + (60 * (i % 3)), y + 25 + (60 * (i // 3))))
 
             if rect.collidepoint(pygame.mouse.get_pos()):
                 if 1 in self.game.game.mouse_press or 3 in self.game.game.mouse_press:
@@ -70,9 +71,10 @@ class CraftingView:
 
         if self.crafting_slots[9] is not None:
             self.game.screen.blit(self.crafting_slots[9].txt, (x + 215, y + 75))
-            text = self.font.render(str(self.crafting_slots[9].count), False, (255, 255, 255))
-            width = text.get_size()[0]
-            self.game.screen.blit(text, (x + 247 - width, y + 85))
+            if self.crafting_slots[9].count > 1:
+                text = self.font.render(str(self.crafting_slots[9].count), False, (255, 255, 255))
+                width = text.get_size()[0]
+                self.game.screen.blit(text, (x + 247 - width, y + 85))
 
         if rect.collidepoint(pygame.mouse.get_pos()):
             if 3 in self.game.game.mouse_press or 1 in self.game.game.mouse_press:
@@ -91,7 +93,7 @@ class CraftingView:
                 render.get_height() + 10), border_radius=5)
             self.game.screen.blit(render, (mouse_pos[0], mouse_pos[1] - render.get_height() - 5))
 
-        crafting_shape = [0,0,0,0,0,0,0,0,0]
+        crafting_shape = [[0,0,0],[0,0,0],[0,0,0]]
         if clicked is not None:
             if clicked == 9:
                 if self.crafting_slots[9] is not None:
@@ -135,11 +137,11 @@ class CraftingView:
                         self.crafting_slots[clicked].count -= count
             for i in range(9):
                 if self.crafting_slots[i] is None:
-                    crafting_shape[i] = 0
+                    crafting_shape[i//3][i % 3] = 0
                 else:
-                    crafting_shape[i] = self.crafting_slots[i].item_id
+                    crafting_shape[i//3][i % 3] = self.crafting_slots[i].item_id
 
-            self.crafting_slots[9] = get_crafting_recipe(crafting_shape)
+            self.crafting_slots[9] = self.game.inventory_view.get_crafting_recipe(crafting_shape)
         # return clicked
 
     def get_crafted_item(self):
@@ -151,26 +153,35 @@ class CraftingView:
         self.crafting_slots[9] = None
 
 
-def get_crafting_recipe(shape):
-    recipes = [
-        (get_crafting_combination(0, 6), ItemStack(13, 4)),
-        ([[5, 5, 5, 5, 0, 5, 5, 5, 5]], ItemStack(15))
-    ]
-    for recipe in recipes:
-        for single_recipe in recipe[0]:
-            if single_recipe == shape:
-                return recipe[1]
+def get_combination(r, crafting_type=2):
+    # if crafting_type != 2 and crafting_type != 3:
+    #     return []
+    width = 0
+    height = len(r)
+    for i in r:
+        width = max(len(i), width)
 
-    return None
+    possibilities = []
 
+    for i in range(abs(height - (crafting_type+1))):
+        for j in range(abs(width - (crafting_type+1))):
+            temp = copy.deepcopy(r)
+            for m in range(len(temp)):
+                for _ in range(j):
+                    temp[m].insert(0, 0)
 
-def get_crafting_combination(combination_type, arg):
-    blank = [0 for _ in range(9)]
-    to_return = []
-    if combination_type == 0:
-        for i in range(len(blank)):
-            blank = [0 for _ in range(9)]
-            blank[i] = arg
-            to_return.append(blank)
+            for k in range(i):
+                temp.insert(0, [0, 0, 0])
 
-    return to_return
+            for m in temp:
+                for _ in range(abs(len(m) - crafting_type)):
+                    m.append(0)
+
+            for _ in range(abs(len(temp) - crafting_type)):
+                t = []
+                for _ in range(crafting_type):
+                    t.append(0)
+                temp.append(t)
+
+            possibilities.append(temp)
+    return possibilities

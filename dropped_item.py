@@ -56,7 +56,7 @@ class DroppedItem:
         self.pos[0] += (self.vector[0]+self.velocity[0])
         self.pos[1] += (self.vector[1]+self.velocity[1])
 
-        self.game.screen.blit(pygame.transform.scale(self.world.block_types[self.type][2], (10,10)), (round((self.pos[0] - self.game.player.pos[0]+25)*20, 2), round(650 - ((self.pos[1]-self.game.player.pos[1] + 10) * 20), 2)))
+        self.game.screen.blit(pygame.transform.scale(self.game.block_type[self.type]["txt"], (10,10)), (round((self.pos[0] - self.game.player.pos[0]+25)*20, 2), round(650 - ((self.pos[1]-self.game.player.pos[1] + 10) * 20), 2)))
         # pygame.draw.rect(self.game.screen, self.world.block_types[self.type][2], pygame.Rect(round((self.pos[0] - self.game.player.pos[0]+25)*20, 2), round(650 - ((self.pos[1]-self.game.player.pos[1] + 10) * 20), 2), 10, 10))
 
     def has_been_picked(self):
