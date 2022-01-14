@@ -39,6 +39,16 @@ class Game:
         self.paused = False
         self.line_length = 0
         self.last_block = None
+        self.tick_counter = 0
+
+        # tworzenie chmur
+        self.cloud_images = (pygame.image.load("textures/environment/cloud_1.png"), pygame.image.load("textures/environment/cloud_2.png"))
+        self.clouds = []
+        a = random.randint(-200,-100)
+        while a < 1000:
+            self.clouds.append([[a, random.randint(50,100)], random.choice((0, 1))])
+            a += random.randint(200,300)
+
 
         self.mouse_click = pygame.mouse.get_pressed(3)
 
@@ -78,6 +88,7 @@ class Game:
     def general_update(self):
         # mouse click
         self.mouse_click = pygame.mouse.get_pressed(3)
+        self.tick_counter += 1
 
         for i in self.to_update:
             i.update()
@@ -174,6 +185,17 @@ class Game:
         sun_x = (self.screen.get_width() + 64) * day_percent * 2 - 64
         self.screen.blit(self.MOON_IMAGE, (moon_x - 32, 500 - get_sun_height(moon_x)))
         self.screen.blit(self.SUN_IMAGE, (sun_x - 32, 500 - get_sun_height(sun_x)))
+
+        for i, cloud in enumerate(self.clouds):
+            self.screen.blit(self.cloud_images[cloud[1]], cloud[0])
+            cloud_speed = .4
+            self.clouds[i][0][0] += cloud_speed
+            if self.clouds[i][0][0] > 1000:
+                self.clouds.pop(i)
+            if self.tick_counter % int(250/cloud_speed) == 0:
+                self.clouds.append([[random.randint(-200,-150), random.randint(50,100)], random.choice((0, 1))])
+                self.tick_counter += 1
+
 
         self.screen.blit(self.font.render(
             f"TIME: {int((24 * day_percent + 6) % 24)}:{int((((24 * day_percent + 6) % 24) - (((24 * day_percent + 6) % 24) // 1)) * 60)}",
