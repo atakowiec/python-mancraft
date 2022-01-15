@@ -7,4 +7,5 @@ class ItemStack:
         self.name = block_type[item_id]["name"]
         self.txt = block_type[item_id]["txt"]
         self.type = block_type[item_id]["type"]
+        self.data = block_type[item_id]
         self.count = count

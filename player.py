@@ -1,3 +1,4 @@
+import copy
 import random
 import pygame.draw
 import time
@@ -25,6 +26,47 @@ class Player:
         self.damage_earthquake = [0, 0]
 
     def update(self):
+        # scrollowanie slotow
+        if self.game.game.mouse_press is not []:
+            if 4 in self.game.game.mouse_press:
+                self.current_slot += 1
+                self.game.breaking_time = 0
+            elif 5 in self.game.game.mouse_press:
+                self.current_slot -= 1
+                self.game.breaking_time = 0
+
+            self.current_slot += 9
+            self.current_slot %= 9
+
+        for event in self.game.game.clicked_once:
+            if event.key == pygame.K_1:
+                self.game.breaking_time = 0
+                self.current_slot = 0
+            elif event.key == pygame.K_2:
+                self.game.breaking_time = 0
+                self.current_slot = 1
+            elif event.key == pygame.K_3:
+                self.game.breaking_time = 0
+                self.current_slot = 2
+            elif event.key == pygame.K_4:
+                self.game.breaking_time = 0
+                self.current_slot = 3
+            elif event.key == pygame.K_5:
+                self.game.breaking_time = 0
+                self.current_slot = 4
+            elif event.key == pygame.K_6:
+                self.game.breaking_time = 0
+                self.current_slot = 5
+            elif event.key == pygame.K_7:
+                self.game.breaking_time = 0
+                self.current_slot = 6
+            elif event.key == pygame.K_8:
+                self.game.breaking_time = 0
+                self.current_slot = 7
+            elif event.key == pygame.K_9:
+                self.game.breaking_time = 0
+                self.current_slot = 8
+
         #  wyświetlanie ekwipunku
         for i in range(9):
             if self.current_slot == i:
@@ -139,24 +181,44 @@ class Player:
             if self.game.clicked_block == self.game.last_block:
                 if self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]]:
                     self.game.breaking_time += time.time()-self.game.tick_time
-                    breaking_time = self.game.block_type[self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]]]["breaking_time"]
+
+                    # w trakcie niszczenia
+                    block_id = self.game.world.blocks[self.game.last_block[0]][self.game.last_block[1]]
+                    discount = 1
+                    tool_level = 0
+                    tool_type = 0
+                    intended_tool = []
+                    required_tool_level = 0
+                    if self.inventory[self.current_slot] is not None:
+                        if "tool_level" in self.inventory[self.current_slot].data.keys():
+                            tool_level = self.inventory[self.current_slot].data["tool_level"]
+                            tool_type = self.inventory[self.current_slot].data["tool_type"]
+                    if "intended_tool" in self.game.block_type[block_id].keys():
+                        intended_tool = self.game.block_type[block_id]["intended_tool"]
+                        required_tool_level = self.game.block_type[block_id]["required_tool_level"]
+
+                    if tool_type in intended_tool:
+                        # TODO tutaj mozna dodac efficiency
+                        discount -= (0.15*(tool_level+1))
+
+                    breaking_time = self.game.block_type[block_id]["breaking_time"]*discount
 
                     if self.game.breaking_time >= breaking_time:
                         # Zniszczenie bloku
                         self.game.breaking_time = 0
-                        block_id = self.game.world.blocks[self.game.last_block[0]][self.game.last_block[1]]
-                        drop_list = self.game.block_type[block_id]["drop"]
-                        amount_list = self.game.block_type[block_id]["amount"]
-                        probability = self.game.block_type[block_id]["drop_probability"]*1000
-                        if random.randint(0, 1000) < (probability % 1000):
-                            amount_list = [i+1 for i in amount_list]
-
-                        for drop in drop_list:
-                            for _ in range(random.choice(amount_list)):
-                                self.game.create_item_on_ground(drop, self.game.last_block)
-
                         self.game.world.blocks[self.game.last_block[0]][self.game.last_block[1]] = 0
-                        # TODO add fortuna and 'tools' here
+
+                        if required_tool_level <= tool_level:
+                            # obliczanie dropu
+                            drop_list = self.game.block_type[block_id]["drop"]
+                            drop_amount = self.game.block_type[block_id]["amount"]
+                            drop_probability = self.game.block_type[block_id]["drop_probability"]*1000
+                            if random.randint(1, 1000) <= drop_probability % 1000:
+                                drop_amount = [i+1 for i in drop_amount]
+
+                            for drop in drop_list:
+                                for i in range(random.choice(drop_amount)):
+                                    self.game.create_item_on_ground(drop, self.game.last_block)
 
                     else:
                         # Block breaking animation
@@ -193,6 +255,7 @@ class Player:
                 return True
         return False
 
+    # noinspection PyTypeChecker
     def add_to_inventory(self, item):
         for k, v in enumerate(self.inventory):
             if v is not None and v.item_id == item.type:

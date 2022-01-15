@@ -98,24 +98,6 @@ class Game:
     def update(self):
         # pressed
         for event in self.game.clicked_once:
-            if event.key == pygame.K_1:
-                self.player.current_slot = 0
-            elif event.key == pygame.K_2:
-                self.player.current_slot = 1
-            elif event.key == pygame.K_3:
-                self.player.current_slot = 2
-            elif event.key == pygame.K_4:
-                self.player.current_slot = 3
-            elif event.key == pygame.K_5:
-                self.player.current_slot = 4
-            elif event.key == pygame.K_6:
-                self.player.current_slot = 5
-            elif event.key == pygame.K_7:
-                self.player.current_slot = 6
-            elif event.key == pygame.K_8:
-                self.player.current_slot = 7
-            elif event.key == pygame.K_9:
-                self.player.current_slot = 8
             if event.key == pygame.K_e:
                 if self.screen_state == "game":
                     self.to_update = [self, self.inventory_view]
@@ -137,15 +119,6 @@ class Game:
                     self.screen_state = "game"
                     self.paused = False
 
-        # scrollowanie slotow
-        if self.game.mouse_press is not []:
-            if 4 in self.game.mouse_press:
-                self.player.current_slot += 1
-            elif 5 in self.game.mouse_press:
-                self.player.current_slot -= 1
-
-            self.player.current_slot += 9
-            self.player.current_slot %= 9
 
         self.screen.fill(self.BACKGROUND_COLOR)
 
@@ -162,24 +135,21 @@ class Game:
         day_lightness = pygame.Surface(self.screen.get_size(), 32).convert_alpha()
         time_of_day = self.world.time_in_game % self.DAY_DURATION
         day_percent = (time_of_day / self.DAY_DURATION)
-        dark = 220
+        dark = 180
 
         if 0 < day_percent <= 0.05:
             # sunrise
             day_lightness.fill((0, 0, 0, dark - (dark * 20 * day_percent)))
-            self.screen.blit(day_lightness, (0, 0))
         elif 0.05 < day_percent <= 0.45:
             # day
             day_lightness.fill((0, 0, 0, 0))
-            self.screen.blit(day_lightness, (0, 0))
         elif 0.45 < day_percent <= 0.5:
             # sunset
             day_lightness.fill((0, 0, 0, 0 + (dark * 20 * (day_percent - 0.45))))
-            self.screen.blit(day_lightness, (0, 0))
         else:
             # night
             day_lightness.fill((0, 0, 0, dark))
-            self.screen.blit(day_lightness, (0, 0))
+        self.screen.blit(day_lightness, (0, 0))
 
         moon_x = self.screen.get_width() * day_percent * 2 - self.screen.get_width()
         sun_x = (self.screen.get_width() + 64) * day_percent * 2 - 64

@@ -30,7 +30,9 @@ block_type = {
         "drop": [5],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [1],
+        "required_tool_level": 1
     },
     2: {
         "name": "grass",
@@ -40,7 +42,9 @@ block_type = {
         "drop": [3],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [3],
+        "required_tool_level": 0
     },
     3: {
         "name": "dirt",
@@ -50,7 +54,9 @@ block_type = {
         "drop": [3],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [3],
+        "required_tool_level": 0
     },
     4: {
         "name": "bedrock",
@@ -60,7 +66,9 @@ block_type = {
         "drop": [4],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [],
+        "required_tool_level": 20
     },
     5: {
         "name": "cobblestone",
@@ -70,7 +78,9 @@ block_type = {
         "drop": [5],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [1],
+        "required_tool_level": 1
     },
     6: {
         "name": "wood log",
@@ -80,7 +90,9 @@ block_type = {
         "drop": [6],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [2],
+        "required_tool_level": 0
     },
     7: {
         "name": "leaves",
@@ -90,7 +102,9 @@ block_type = {
         "drop": [22],
         "amount": [0],
         "drop_probability": 0.1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [5],
+        "required_tool_level": 0
     },
     8: {
         "name": "diamond ore",
@@ -100,7 +114,9 @@ block_type = {
         "drop": [16],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": True
+        "fortune": True,
+        "intended_tool": [1],
+        "required_tool_level": 3
     },
     9: {
         "name": "gold ore",
@@ -110,7 +126,9 @@ block_type = {
         "drop": [9],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [1],
+        "required_tool_level": 3
     },
     10: {
         "name": "iron ore",
@@ -120,7 +138,9 @@ block_type = {
         "drop": [10],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [1],
+        "required_tool_level": 2
     },
     11: {
         "name": "coal ore",
@@ -130,7 +150,9 @@ block_type = {
         "drop": [19],
         "amount": [1,2],
         "drop_probability": 1.1,
-        "fortune": True
+        "fortune": True,
+        "intended_tool": [1],
+        "required_tool_level": 1
     },
     12: {
         "name": "lapis ore",
@@ -140,7 +162,9 @@ block_type = {
         "drop": [20],
         "amount": [2,3,4],
         "drop_probability": 1,
-        "fortune": True
+        "fortune": True,
+        "intended_tool": [1],
+        "required_tool_level": 2
     },
     13: {
         "name": "wood plank",
@@ -152,7 +176,9 @@ block_type = {
         "drop_probability": 1,
         "fortune": False,
         "crafting_recipe": [[[6]]],
-        "crafting_amount": 4
+        "crafting_amount": 4,
+        "intended_tool": [2],
+        "required_tool_level": 0
     },
     14: {
         "name": "crafting table",
@@ -164,7 +190,9 @@ block_type = {
         "drop_probability": 1,
         "fortune": False,
         "crafting_recipe": [[[13,13],[13,13]]],
-        "crafting_amount": 1
+        "crafting_amount": 1,
+        "intended_tool": [2],
+        "required_tool_level": 0
     },
     15: {
         "name": "furnace",
@@ -176,7 +204,9 @@ block_type = {
         "drop_probability": 1,
         "fortune": False,
         "crafting_recipe": [[[5,5,5],[5,0,5],[5,5,5]]],
-        "crafting_amount": 1
+        "crafting_amount": 1,
+        "intended_tool": [1],
+        "required_tool_level": 1
     },
     16: {
         "name": "diamond",
@@ -216,7 +246,9 @@ block_type = {
         "drop": [22],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [5],
+        "required_tool_level": 0
     },
     23: {
         "name": "stick",
@@ -232,6 +264,15 @@ block_type = {
         "crafting_recipe": [[[16,17],[18,20]]],
         "crafting_amount": 1
     },
+    29: {
+        "name": "shears",
+        "txt": pygame.image.load("textures/items/shears.png"),
+        "type": "item",
+        "tool_type": 5,
+        "tool_level": 3,
+        "crafting_recipe": [[[18],[0,18]], [[0,18],[18]]],
+        "crafting_amount": 1
+    },
     30: {
         "name": "blue flower",
         "breaking_time": 0.5,
@@ -240,7 +281,9 @@ block_type = {
         "drop": [30],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [5],
+        "required_tool_level": 0
     },
     31: {
         "name": "orange flower",
@@ -250,7 +293,9 @@ block_type = {
         "drop": [31],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [5],
+        "required_tool_level": 0
     },
     32: {
         "name": "purple flower",
@@ -260,7 +305,9 @@ block_type = {
         "drop": [32],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [5],
+        "required_tool_level": 0
     },
     33: {
         "name": "pink flower",
@@ -270,7 +317,9 @@ block_type = {
         "drop": [33],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [5],
+        "required_tool_level": 0
     },
     34: {
         "name": "light blue flower",
@@ -280,7 +329,9 @@ block_type = {
         "drop": [34],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [5],
+        "required_tool_level": 0
     },
     35: {
         "name": "green flower",
@@ -290,7 +341,9 @@ block_type = {
         "drop": [35],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [5],
+        "required_tool_level": 0
     },
     36: {
         "name": "red flower",
@@ -300,7 +353,9 @@ block_type = {
         "drop": [36],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False
+        "fortune": False,
+        "intended_tool": [5],
+        "required_tool_level": 0
     },
     37: {
         "name": "wooden pickaxe",
