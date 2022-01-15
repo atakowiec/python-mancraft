@@ -1,6 +1,7 @@
 import random
 from variables import block_type
 import pygame.image
+from block import Block
 
 destroy_stages = [
     pygame.image.load(f"./textures/blocks/destroy_stage_{i}.png") for i in range(10)
@@ -20,44 +21,43 @@ class World:
         plains = 0
         flower_pos = random.randint(6, 10)
 
-        for i in range(400):
-            tmp = [4]
+        for i in range(1200):
+            tmp = [Block(4)]
             for j in range(256):
                 if j < random_height - 4:
-                    tmp.append(1)
+                    tmp.append(Block(1))
                 elif j < random_height - 1:
-                    tmp.append(3)
+                    tmp.append(Block(3, True))
                 elif j < random_height:
-                    tmp.append(2)
+                    tmp.append(Block(2, True))
                 else:
-                    tmp.append(0)
+                    tmp.append(Block(0, True, True))
 
             # Tree Generator
             if i == tree_pos:
                 tree_pos += random.randint(5, 15)
-                # if tree_pos > len(self.blocks):
-                #     tree_pos = i
                 tree_height = random.randint(6, 8)
                 for index, k in enumerate(self.blocks[i - 2]):
-                    if tree_height == 0:
-                        self.blocks[i - 2][index] = 7
-                        tree_height = index
+                    if k.block_id == 0:
+                        for j in range(tree_height+1):
+                            self.blocks[i - 2][index+j] = Block(6, True, True)
+                            if j == tree_height:
+                                self.blocks[i - 2][index+j] = Block(7, True, True)
+                        tree_height += index
                         break
-                    elif k == 0:
-                        tree_height -= 1
-                        self.blocks[i - 2][index] = 6
-                self.blocks[i - 1][tree_height - 1], self.blocks[i - 3][tree_height - 1] = 7, 7
-                self.blocks[i - 1][tree_height - 2], self.blocks[i - 3][tree_height - 2] = 7, 7
-                tmp[tree_height - 2], self.blocks[i - 4][tree_height - 2] = 7, 7
-                self.blocks[i - 1][tree_height - 3], self.blocks[i - 3][tree_height - 3] = 7, 7
-                tmp[tree_height - 3], self.blocks[i - 4][tree_height - 3] = 7, 7
+
+                self.blocks[i - 1][tree_height - 1], self.blocks[i - 3][tree_height - 1] = Block(7, True, True), Block(7, True, True)
+                self.blocks[i - 1][tree_height - 2], self.blocks[i - 3][tree_height - 2] = Block(7, True, True), Block(7, True, True)
+                tmp[tree_height - 2], self.blocks[i - 4][tree_height - 2] = Block(7, True, True), Block(7, True, True)
+                self.blocks[i - 1][tree_height - 3], self.blocks[i - 3][tree_height - 3] = Block(7, True, True), Block(7, True, True)
+                tmp[tree_height - 3], self.blocks[i - 4][tree_height - 3] = Block(7, True, True), Block(7, True, True)
 
             if flower_pos == i:
-                if tmp[random_height+1] != 0:
+                if tmp[random_height+1].block_id != 0:
                     flower_pos += random.randint(1, 3)
                 else:
                     flower_pos += random.randint(5, 15)
-                    tmp[random_height+1] = random.randint(30, 36)
+                    tmp[random_height+1] = Block(random.randint(30, 36), True, True)
 
             if plains > 0:
                 plains -= 1
@@ -142,11 +142,12 @@ class World:
                     else:
                         pos[1] += (random.randint(0, 2) - 1)
                     self.put_ore(pos, 12)
+
             # generating caves
             if cave_pos[0] == col:
                 for j in range(cave_height):
-                    if self.blocks[col][cave_pos[1]+j] not in (4,6,7):
-                        self.blocks[col][cave_pos[1]+j] = 0
+                    if self.blocks[col][cave_pos[1]+j].block_id not in (4,6,7):
+                        self.blocks[col][cave_pos[1]+j] = Block(0, True, True)
                 cave_length -= 1
                 cave_pos[0] = col+1
                 cave_height += (random.randint(0, 2)-1)
@@ -158,22 +159,22 @@ class World:
 
             if cave_length == 0:
                 try:
-                    if self.blocks[col+1][cave_pos[1]] != 4:
-                        self.blocks[col+1][cave_pos[1]] = 0
+                    if self.blocks[col+1][cave_pos[1]].block_id != 4:
+                        self.blocks[col+1][cave_pos[1]] = Block(0, True, True)
                 except IndexError:
                     pass
 
                 cave_pos[1] = random.randint(2, 60)
                 cave_length = random.randint(20, 80)
 
-            self.blocks[col][-1] = 4
+            self.blocks[col][-1] = Block(4)
         for i in range(len(self.blocks[0])):
-            self.blocks[0][i] = 4
-            self.blocks[len(self.blocks)-2][i] = 4
+            self.blocks[0][i] = Block(4)
+            self.blocks[len(self.blocks)-2][i] = Block(4)
 
     def put_ore(self, pos, id):
         try:
-            if self.blocks[pos[0]][pos[1]] == 1:
-                self.blocks[pos[0]][pos[1]] = id
+            if self.blocks[pos[0]][pos[1]].block_id == 1:
+                self.blocks[pos[0]][pos[1]] = Block(id)
         except IndexError:
             pass

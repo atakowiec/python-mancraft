@@ -47,33 +47,33 @@ class Entity:
         if vector[1] < 0:
             # sprawdzanie blokow pod nogami
             for i in range(self.stats[4][0]//20+1):
-                if self.game.world.blocks[int(self.pos[0]+i)][int(self.pos[1] + vector[1])] not in self.game.IGNORED_BLOCKS:
+                if not self.game.world.blocks[int(self.pos[0]+i)][int(self.pos[1] + vector[1])].background:
                     vector[1] = 0
                     self.pos[1] = int(self.pos[1])
 
-            if self.game.world.blocks[int(self.pos[0]+(self.stats[4][0]/20))][int(self.pos[1] + vector[1])] not in self.game.IGNORED_BLOCKS:
+            if not self.game.world.blocks[int(self.pos[0]+(self.stats[4][0]/20))][int(self.pos[1] + vector[1])].background:
                 vector[1] = 0
                 self.pos[1] = int(self.pos[1])
 
         if vector[0] < 0:
             # sprawdzanie bloku po lewej
             for i in range(self.stats[4][1]//20+1):
-                if self.game.world.blocks[int(self.pos[0] + vector[0])][int(self.pos[1])+i] not in self.game.IGNORED_BLOCKS:
+                if not self.game.world.blocks[int(self.pos[0] + vector[0])][int(self.pos[1])+i].background:
                     vector[0] = 0
                     self.jump()
 
-            if self.game.world.blocks[int(self.pos[0] + vector[0])][int(self.pos[1] + (self.stats[4][1]/20))] not in self.game.IGNORED_BLOCKS:
+            if not self.game.world.blocks[int(self.pos[0] + vector[0])][int(self.pos[1] + (self.stats[4][1]/20))].background:
                 vector[0] = 0
                 self.jump()
 
         elif vector[0] > 0:
             # sprawdzanie bloku po prawej
             for i in range(self.stats[4][1]//20+1):
-                if self.game.world.blocks[int(self.pos[0] + vector[0] + self.stats[4][0]/20)][int(self.pos[1])+i] not in self.game.IGNORED_BLOCKS:
+                if not self.game.world.blocks[int(self.pos[0] + vector[0] + self.stats[4][0]/20)][int(self.pos[1])+i].background:
                     vector[0] = 0
                     self.jump()
 
-            if self.game.world.blocks[int(self.pos[0] + vector[0] + self.stats[4][0]/20)][int(self.pos[1] + (self.stats[4][1]/20))] not in self.game.IGNORED_BLOCKS:
+            if not self.game.world.blocks[int(self.pos[0] + vector[0] + self.stats[4][0]/20)][int(self.pos[1] + (self.stats[4][1]/20))].background:
                 vector[0] = 0
                 self.jump()
 
@@ -81,7 +81,7 @@ class Entity:
 
     def jump(self):
         for i in range(self.stats[4][0]//20+1):
-            if self.game.world.blocks[int(self.pos[0]+i)][int(self.pos[1]-0.1)] not in self.game.IGNORED_BLOCKS:
+            if not self.game.world.blocks[int(self.pos[0]+i)][int(self.pos[1]-0.1)].background:
                 self.velocity = .3
                 # TODO dodac sprawdzanie bloku nad glowa
                 break

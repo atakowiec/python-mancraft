@@ -155,5 +155,5 @@ class FurnaceView:
         self.opened_furnace = furnace_pos
         self.create_furnace(furnace_pos)
 
-    def create_furnace(self, furnace_pos):
-        self.furnaces_data.append([furnace_pos, None, None, None, 0, 0, 1])
+    def create_furnace(self, furnace_pos, subject=None, fuel=None, result=None, fuel_left=0, smelting_ticks=0, fuel_full=1):
+        self.furnaces_data.append([furnace_pos, subject, fuel, result, fuel_left, smelting_ticks, fuel_full])

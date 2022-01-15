@@ -33,17 +33,17 @@ class DroppedItem:
         self.velocity[1] *= (-self.gravity/10)
 
         # Mechanika Kolizji z podłożem oraz podskakiwanie itemow
-        if self.world.blocks[int(self.pos[0])][int(self.pos[1]-0.1)] not in self.game.IGNORED_BLOCKS or self.world.blocks[int(self.pos[0]+0.2)][int(self.pos[1]-0.1)] not in self.game.IGNORED_BLOCKS:
+        if not self.world.blocks[int(self.pos[0])][int(self.pos[1]-0.1)].background or not self.world.blocks[int(self.pos[0]+0.2)][int(self.pos[1]-0.1)].background:
             self.vector = [0, 0]
             self.pos[1] = int(self.pos[1]+0.1)
             self.velocity[1] = 0.005
 
         # Kolizje z blokami obok
-        if self.world.blocks[int(self.pos[0] + 0.5)][int(self.pos[1])] not in self.game.IGNORED_BLOCKS:
+        if not self.world.blocks[int(self.pos[0] + 0.5)][int(self.pos[1])].background:
             self.pos[0] = int(self.pos[0])+0.5
             self.vector[0] = 0
             self.velocity[0] = 0
-        elif self.world.blocks[int(self.pos[0] - 0.1)][int(self.pos[1])] not in self.game.IGNORED_BLOCKS:
+        elif not self.world.blocks[int(self.pos[0] - 0.1)][int(self.pos[1])].background:
             self.pos[0] = int(self.pos[0]+0.8)
             self.vector[0] = 0
             self.velocity[0] = 0

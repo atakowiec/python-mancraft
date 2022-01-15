@@ -6,6 +6,7 @@ from world import destroy_stages
 from itemstack import ItemStack
 from entity import Entity
 from crafting_view import CraftingView
+from block import Block
 
 
 class Player:
@@ -106,7 +107,7 @@ class Player:
             self.velocity -= 0.3
 
         if pressed[pygame.K_w]:
-            if self.pos[1] == int(self.pos[1]) and (self.game.world.blocks[int(self.pos[0])][int(self.pos[1]-0.99)] not in self.game.IGNORED_BLOCKS or self.game.world.blocks[int(self.pos[0]+0.99)][int(self.pos[1]-0.99)] not in self.game.IGNORED_BLOCKS):
+            if self.pos[1] == int(self.pos[1]) and (not self.game.world.blocks[int(self.pos[0])][int(self.pos[1]-0.1)].background or not self.game.world.blocks[int(self.pos[0]+0.99)][int(self.pos[1]-0.1)].background):
                 self.velocity = 1.2
         if pressed[pygame.K_d]:
             vector[0] += 0.25
@@ -114,28 +115,28 @@ class Player:
             vector[0] -= 0.25
 
         # Magiczna siła zapobiegająca blokowaniu w klockach
-        if self.game.world.blocks[int(self.pos[0])][int(self.pos[1])] not in self.game.IGNORED_BLOCKS or self.game.world.blocks[int(self.pos[0]+0.9)][int(self.pos[1])] not in self.game.IGNORED_BLOCKS:
+        if not self.game.world.blocks[int(self.pos[0])][int(self.pos[1])].background or not self.game.world.blocks[int(self.pos[0]+0.9)][int(self.pos[1])].background:
             self.pos[1] = int(self.pos[1]+1)
 
         # Kolizje gracza
         if vector[0] > 0:
-            if self.game.world.blocks[int(self.pos[0]+1)][int(self.pos[1])] not in self.game.IGNORED_BLOCKS or self.game.world.blocks[int(self.pos[0]+1)][int(self.pos[1]+1)] not in self.game.IGNORED_BLOCKS:
+            if not self.game.world.blocks[int(self.pos[0]+1)][int(self.pos[1])].background or not self.game.world.blocks[int(self.pos[0]+1)][int(self.pos[1]+1)].background:
                 vector[0] = 0
                 self.pos[0] = int(self.pos[0])
         elif vector[0] < 0:
-            pass  # Sprawdzenie bloku po lewej
-            if self.game.world.blocks[int(self.pos[0]-0.1)][int(self.pos[1])] not in self.game.IGNORED_BLOCKS or self.game.world.blocks[int(self.pos[0]-0.1)][int(self.pos[1]+1)] not in self.game.IGNORED_BLOCKS:
+            # Sprawdzenie bloku po lewej
+            if not self.game.world.blocks[int(self.pos[0]-0.1)][int(self.pos[1])].background or not self.game.world.blocks[int(self.pos[0]-0.1)][int(self.pos[1]+1)].background:
                 vector[0] = 0
                 self.pos[0] = int(self.pos[0]+0.4)
         if vector[1] > 0:
             # Sprawdzenie bloku nad głowa
-            if self.game.world.blocks[int(self.pos[0])][int(self.pos[1]+2)] not in self.game.IGNORED_BLOCKS or self.game.world.blocks[int(self.pos[0]+0.90)][int(self.pos[1]+2)] not in self.game.IGNORED_BLOCKS:
+            if not self.game.world.blocks[int(self.pos[0])][int(self.pos[1]+2)].background or not self.game.world.blocks[int(self.pos[0]+0.90)][int(self.pos[1]+2)].background:
                 vector[1] = 0
                 self.pos[1] = int(self.pos[1])
                 self.velocity = 0
         elif vector[1] < 0:
             # Sprawdzenie bloku pod nogami
-            if self.game.world.blocks[int(self.pos[0])][int(self.pos[1]+vector[1])] not in self.game.IGNORED_BLOCKS or self.game.world.blocks[int(self.pos[0]+0.90)][int(self.pos[1]+vector[1])] not in self.game.IGNORED_BLOCKS:
+            if not self.game.world.blocks[int(self.pos[0])][int(self.pos[1]+vector[1])].background or not self.game.world.blocks[int(self.pos[0]+0.90)][int(self.pos[1]+vector[1])].background:
                 vector[1] = 0
                 self.pos[1] = int(self.pos[1]+vector[1])
 
@@ -157,18 +158,18 @@ class Player:
             
         # iterakcje z blokami
         if 3 in self.game.game.mouse_press and self.game.clicked_block is not None and self.game.line_length <= self.game.player.range_of_hand * 20 and not self.game.paused:
-            if not self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]]:
+            if not self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]].block_id:
                 # jesli klikniety blok jest powietrzem
                 if self.game.player.inventory[self.game.player.current_slot] is not None and self.game.player.inventory[self.game.player.current_slot].type == "block":
-                    self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]] = self.game.player.inventory[
-                        self.game.player.current_slot].item_id
+                    self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]] = Block(self.game.player.inventory[
+                        self.game.player.current_slot].item_id, True, False)
                     if self.game.player.inventory[self.game.player.current_slot].count == 1:
                         self.game.player.inventory[self.game.player.current_slot] = None
                     else:
                         self.game.player.inventory[self.game.player.current_slot].count -= 1
             else:
                 # jesli nie jest powietrzem
-                clicked_block_type = self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]]
+                clicked_block_type = self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]].block_id
                 if clicked_block_type == 14:
                     self.game.to_update = [self.game, CraftingView(self.game)]
                     self.game.screen_state = "inventory"
@@ -179,11 +180,11 @@ class Player:
 
         if self.game.mouse_click[0] and self.game.clicked_block is not None and self.game.line_length <= self.game.player.range_of_hand * 20 and not self.game.paused:
             if self.game.clicked_block == self.game.last_block:
-                if self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]]:
+                if self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]].block_id:
                     self.game.breaking_time += time.time()-self.game.tick_time
 
                     # w trakcie niszczenia
-                    block_id = self.game.world.blocks[self.game.last_block[0]][self.game.last_block[1]]
+                    block_id = self.game.world.blocks[self.game.last_block[0]][self.game.last_block[1]].block_id
                     discount = 1
                     tool_level = 0
                     tool_type = 0
@@ -206,7 +207,7 @@ class Player:
                     if self.game.breaking_time >= breaking_time:
                         # Zniszczenie bloku
                         self.game.breaking_time = 0
-                        self.game.world.blocks[self.game.last_block[0]][self.game.last_block[1]] = 0
+                        self.game.world.blocks[self.game.last_block[0]][self.game.last_block[1]] = Block(0, True, True)
 
                         if required_tool_level <= tool_level:
                             # obliczanie dropu
@@ -243,7 +244,7 @@ class Player:
         if pressed[pygame.K_F1]:
             self.game.world.time_in_game += (self.game.DAY_DURATION*0.01)
         if pressed[pygame.K_F2]:
-            self.game.world.blocks[int(self.pos[0])][int(self.pos[1])-1] = random.randint(1, 15)
+            self.game.world.blocks[int(self.pos[0])][int(self.pos[1])-1].block_id = random.randint(1, 15)
         if pressed[pygame.K_F3]:
             self.game.entity_list.append(Entity(self.game, 0, [self.pos[0], self.pos[1]]))
             

@@ -1,4 +1,5 @@
 import datetime
+import json
 import math
 import os
 import time
@@ -54,7 +55,7 @@ class Game:
 
         self.TICK = self.game.TICK
         self.BACKGROUND_COLOR = (30, 144, 255)
-        self.IGNORED_BLOCKS = (0, 6, 7, 30, 31, 32, 33, 34, 35, 36)
+
         self.ITEM_HINT_FONT = pygame.font.Font("freesansbold.ttf", 18)
         self.DAY_DURATION = 600 * self.TICK  # in seconds multiplied by tick amount
 
@@ -66,7 +67,7 @@ class Game:
         self.entity_list = []
 
         for e, i in enumerate(self.world.blocks[len(self.world.blocks) // 2]):
-            if i == 2:
+            if i.block_id == 2:
                 self.player.pos[1] = e + 1
                 # break
 
@@ -185,13 +186,11 @@ class Game:
                         if (self.mouse_click[0] or self.mouse_click[2]) and rect.collidepoint(mouse_pos):
                             self.clicked_block = [col, row]
 
-                        if j != 0:
-                            if j in (6, 7, 2, 3) or self.world.blocks[col - 1][row] == 0 or self.world.blocks[col + 1][row] == 0 or self.world.blocks[col][row - 1] == 0 or self.world.blocks[col][row + 1] == 0:
-                                self.screen.blit(self.block_type[j]["txt"], (
+                        if j.block_id != 0:
+                            if j.visible or self.world.blocks[col - 1][row].block_id == 0 or self.world.blocks[col + 1][row].block_id == 0 or self.world.blocks[col][row - 1].block_id == 0 or self.world.blocks[col][row + 1].block_id == 0:
+                                self.screen.blit(self.block_type[j.block_id]["txt"], (
                                     round((col - self.player.pos[0] + 25) * 20 + self.player.damage_earthquake[0], 2),
-                                    round(
-                                        640 - ((row - self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1],
-                                        2)))
+                                    round(640 - ((row - self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1],2)))
                             else:
                                 if rect.collidepoint(mouse_pos):
                                     line_color = (220, 0, 0)
@@ -220,6 +219,8 @@ class Game:
                         item.has_been_picked()
 
         self.screen.blit(self.font.render(f"FPS: {round((1000 / self.TICK) * 30 / ((time.time() - self.tick_time) * 1000), 1)}", False, (0, 0, 0)), (10, 10))
+        self.screen.blit(self.font.render(f"X: {round(self.player.pos[0], 1)}", False, (0, 0, 0)), (10, 50))
+        self.screen.blit(self.font.render(f"Y: {round(self.player.pos[1], 1)}", False, (0, 0, 0)), (10, 70))
 
         # Update kazdego moba
         for entity in self.entity_list:
@@ -236,87 +237,175 @@ class Game:
             # Ladowanie blokow swiata
             with open(save_dir+"/world.txt") as file:
                 self.world.blocks = []
-                for col in file.readlines():
+                data = json.loads(file.read())
+                for col in data:
                     temp = []
-                    for row in col.split(maxsplit=len(col.split())-1):
-                        temp.append(int(row))
+                    for block in col:
+                        if block == {}:
+                            temp.append(Block(0, True, True))
+                        else:
+                            block_id = block["block_id"]
+                            visible = False
+                            background = False
+                            if "visible" in block.keys():
+                                visible = block["visible"]
+                            if "background" in block.keys():
+                                background = block["background"]
+                            temp.append(Block(block_id, visible, background))
                     self.world.blocks.append(temp)
 
             # Ladowanie ekwipunku i pozycji
             with open(save_dir+"/player.txt") as file:
-                lines = file.readlines()
-                self.player.pos = [float(i) for i in lines[0].split(" ", maxsplit=2)]
-                del lines[0]
-                for index, item in enumerate(lines):
-                    item = item.replace("\n", "")
-                    if item != "None":
-                        item_data = item.split()
-                        self.player.inventory[index] = ItemStack(int(item_data[0]), int(item_data[1]))
-                    else:
+                data = json.loads(file.read())
+                self.player.pos = data["pos"]
+                self.player.fall_distance = data["fall_distance"]
+                self.player.hp = data["hp"]
+                for index, itemstack in enumerate(data["inventory"]):
+                    if itemstack is None:
                         self.player.inventory[index] = None
+                    else:
+                        self.player.inventory[index] = ItemStack(itemstack["item_id"], itemstack["count"])
 
             # Ladowanie entities
             with open(save_dir+"/entity.txt") as file:
-                self.entity_list = []
-                for entity_data in file.readlines():
-                    entity_data = entity_data.replace("\n", "").split()
-                    self.entity_list.append(Entity(self, int(entity_data[0]), [float(entity_data[3]), float(entity_data[4])], int(entity_data[1]), float(entity_data[2])))
+                data = json.loads(file.read())
+                for entity in data:
+                    self.entity_list.append(Entity(self, entity["type"], entity["pos"], entity["task"], entity["task_duration"]))
 
             # Ladowanie dropped items
             with open(save_dir+"/dropped_items.txt") as file:
                 self.items_on_ground = []
-                for dropped_item in file.readlines():
-                    dropped_item = dropped_item.replace("\n", "").split()
-                    self.create_item_on_ground(int(dropped_item[0]), [float(dropped_item[1]), float(dropped_item[2])], life_time=int(dropped_item[3]))
+                data = json.loads(file.read())
+                for item in data:
+                    self.create_item_on_ground(item_id=item["id"], pos=item["pos"], life_time=item["life_time"])
 
             # Ladowanie ustawien swiata
             with open(save_dir+"/world_data.txt") as file:
-                self.world.time_in_game = float(file.readlines()[0].replace("\n", ""))
+                data = json.loads(file.read())
+                self.world.time_in_game = float(data['time_in_game'])
+
+            # Ladowanie piecykow
+            with open(save_dir+"/furnaces.txt") as file:
+                data = json.loads(file.read())
+                for furnace in data:
+                    pos = furnace["pos"]
+                    fuel_left = furnace['fuel_left']
+                    smelting_ticks = furnace['smelting_ticks']
+                    fuel_full = furnace['fuel_full']
+                    subject = None
+                    fuel = None
+                    result = None
+                    if furnace["subject"] is not None:
+                        subject = ItemStack(furnace["subject"]["id"], furnace["subject"]["count"])
+                    if furnace["fuel"] is not None:
+                        fuel = ItemStack(furnace["fuel"]["id"], furnace["fuel"]["count"])
+                    if furnace["result"] is not None:
+                        result = ItemStack(furnace["result"]["id"], furnace["result"]["count"])
+                    self.furnace_view.create_furnace(pos, subject, fuel, result, fuel_left, smelting_ticks, fuel_full)
+
         except FileNotFoundError:
             print("Save file not found, creating..")
 
     def save_world(self):
         default = os.path.join(self.game.GAME_PATH, "saves/"+str(self.world_id))
         with open(default+"/world.txt", "w") as file:
+            data = []
             for col in self.world.blocks:
-                line = ""
+                line = []
                 for element in col:
-                    line += (str(element) + " ")
-                file.write(str(line)+"\n")
+                    temp = {}
+                    if element.block_id != 0:
+                        temp["block_id"] = element.block_id
+                        if element.visible:
+                            temp["visible"] = True
+                        if element.background:
+                            temp["background"] = True
+                    line.append(temp)
+                data.append(line)
+            file.write(json.dumps(data, indent=1))
         print("Saved: world")
 
         with open(default+"/player.txt", "w") as file:
-            file.write(f"{self.player.pos[0]} {self.player.pos[1]}\n")
+            data = {
+                "pos": self.player.pos,
+                "fall_distance": self.player.fall_distance,
+                "hp": self.player.hp
+            }
+            inv = []
             for itemstack in self.player.inventory:
                 if itemstack is not None:
-                    file.write(f"{itemstack.item_id} {itemstack.count}\n")
+                    inv.append({
+                                "item_id": itemstack.item_id,
+                                "count": itemstack.count
+                                })
                 else:
-                    file.write("None\n")
+                    inv.append(None)
+            data["inventory"] = inv
+            file.write(json.dumps(data, indent=1))
         print("Saved: player")
 
         with open(default+"/entity.txt", "w") as file:
+            data = []
             for entity in self.entity_list:
-                file.write(f"{entity.type} {entity.task} {entity.task_duration} {entity.pos[0]} {entity.pos[1]}\n")
+                data.append({
+                    "type": entity.type,
+                    "task": entity.task,
+                    "task_duration": round(entity.task_duration, 1),
+                    "pos": entity.pos
+                })
+            file.write(json.dumps(data, indent=1))
         print("Saved: entity")
 
         with open(default+"/dropped_items.txt", "w") as file:
+            data = []
             for item in self.items_on_ground:
-                file.write(f"{item.type} {item.pos[0]} {item.pos[1]} {item.life_time}\n")
+                data.append({"id": item.type,
+                             "pos": item.pos,
+                             "life_time": item.life_time
+                             })
+            file.write(json.dumps(data, indent=1))
         print("Saved: dropped_items")
 
         with open(default+"/world_data.txt", "w") as file:
-            file.write(f"{self.world.time_in_game}")
+            data = {
+                "time_in_game": self.world.time_in_game
+            }
+            file.write(json.dumps(data, indent=1))
         print("Saved: world_data")
 
         with open(default+"/furnaces.txt", "w") as file:
-            for furnace_data in self.furnace_view.furnaces_data:
-                temp = ""
-                for i in furnace_data:
-                    temp += (str(i) + " ")
-                file.write(temp[:-1])
-                # TODO make furnace saved
+            data = []
+            for furnace in self.furnace_view.furnaces_data:
+                temp = {
+                    "pos": furnace[0],
+                    "subject": None,
+                    "fuel": None,
+                    "result": None,
+                    "fuel_left": furnace[4],
+                    "smelting_ticks": furnace[5],
+                    "fuel_full": furnace[6]
+                }
+                if furnace[1] is not None:
+                    temp["subject"] = {
+                        "id": furnace[1].item_id,
+                        "count": furnace[1].count
+                    }
+                if furnace[2] is not None:
+                    temp["fuel"] = {
+                        "id": furnace[2].item_id,
+                        "count": furnace[2].count
+                    }
+                if furnace[3] is not None:
+                    temp["result"] = {
+                        "id": furnace[3].item_id,
+                        "count": furnace[3].count
+                    }
+
+                data.append(temp)
+            file.write(json.dumps(data, indent=1))
+
         print("Saved: furnaces")
 
 
 def get_sun_height(x):
-    return ((-x * x) / 625) + (1.6 * x)
+    return ((-x * x) / 625) + (1.6 * x) + 70

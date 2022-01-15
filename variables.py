@@ -264,6 +264,20 @@ block_type = {
         "crafting_recipe": [[[16,17],[18,20]]],
         "crafting_amount": 1
     },
+    25: {
+        "name": "dimensioner",
+        "breaking_time": 1.5,
+        "txt": pygame.image.load("textures/blocks/dimensioner.png"),
+        "type": "block",
+        "crafting_recipe": [[[1,1],[1,1]]],
+        "crafting_amount": 1,
+        "drop": [25],
+        "amount": [1],
+        "drop_probability": 1,
+        "fortune": False,
+        "intended_tool": [1],
+        "required_tool_level": 1
+    },
     29: {
         "name": "shears",
         "txt": pygame.image.load("textures/items/shears.png"),
