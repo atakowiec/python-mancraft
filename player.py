@@ -7,6 +7,7 @@ from itemstack import ItemStack
 from entity import Entity
 from crafting_view import CraftingView
 from block import Block
+from dimensioner_view import DimensionerView
 
 
 class Player:
@@ -161,8 +162,7 @@ class Player:
             if not self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]].block_id:
                 # jesli klikniety blok jest powietrzem
                 if self.game.player.inventory[self.game.player.current_slot] is not None and self.game.player.inventory[self.game.player.current_slot].type == "block":
-                    self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]] = Block(self.game.player.inventory[
-                        self.game.player.current_slot].item_id, True, False)
+                    self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]] = Block(self.game.player.inventory[self.game.player.current_slot].item_id, True, self.game.player.inventory[self.game.player.current_slot].behind)
                     if self.game.player.inventory[self.game.player.current_slot].count == 1:
                         self.game.player.inventory[self.game.player.current_slot] = None
                     else:
@@ -176,6 +176,9 @@ class Player:
                 elif clicked_block_type == 15:
                     self.game.to_update = [self.game]
                     self.game.furnace_view.open_furnace(self.game.clicked_block)
+                    self.game.screen_state = "inventory"
+                elif clicked_block_type == 25:
+                    self.game.to_update = [self.game, DimensionerView(self.game)]
                     self.game.screen_state = "inventory"
 
         if self.game.mouse_click[0] and self.game.clicked_block is not None and self.game.line_length <= self.game.player.range_of_hand * 20 and not self.game.paused:
@@ -207,7 +210,6 @@ class Player:
                     if self.game.breaking_time >= breaking_time:
                         # Zniszczenie bloku
                         self.game.breaking_time = 0
-                        self.game.world.blocks[self.game.last_block[0]][self.game.last_block[1]] = Block(0, True, True)
 
                         if required_tool_level <= tool_level:
                             # obliczanie dropu
@@ -219,7 +221,9 @@ class Player:
 
                             for drop in drop_list:
                                 for i in range(random.choice(drop_amount)):
-                                    self.game.create_item_on_ground(drop, self.game.last_block)
+                                    self.game.create_item_on_ground(drop, self.game.last_block, behind=self.game.world.blocks[self.game.clicked_block[0]][self.game.clicked_block[1]].background)
+
+                        self.game.world.blocks[self.game.last_block[0]][self.game.last_block[1]] = Block(0, True, True)
 
                     else:
                         # Block breaking animation
@@ -252,20 +256,20 @@ class Player:
 
     def has_enough_space(self, item):
         for k, v in enumerate(self.inventory):
-            if v is None or v.item_id == item.type:
+            if v is None or (v.item_id == item.type and v.behind == item.behind):
                 return True
         return False
 
     # noinspection PyTypeChecker
     def add_to_inventory(self, item):
         for k, v in enumerate(self.inventory):
-            if v is not None and v.item_id == item.type:
+            if v is not None and v.item_id == item.type and v.behind == item.behind:
                 self.inventory[k].count += 1
                 return True
 
         for k, v in enumerate(self.inventory):
             if v is None:
-                self.inventory[k] = ItemStack(item.type)
+                self.inventory[k] = ItemStack(item.type, behind=item.behind)
                 return True
 
         raise Exception("Unfortunately not enough space in inventory :(")
@@ -283,3 +287,14 @@ class Player:
                     damage = 8
                 self.damage_earthquake = [[damage, damage],[damage, -damage]][random.randint(0, 1)]
             self.fall_distance = 0
+
+    def drop_item(self, itemstack):
+        if itemstack is None:
+            return False
+        v = 0.2
+        if self.game.screen.get_width()/2 - pygame.mouse.get_pos()[0] > 0:
+            v = -v
+        position = [self.pos[0],self.pos[1]+1.5]
+        for i in range(itemstack.count):
+            self.game.create_item_on_ground(itemstack.item_id, position, immunite=30, velocity=[v,0], behind=itemstack.behind)
+        return True

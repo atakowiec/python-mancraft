@@ -23,30 +23,8 @@ class InventoryView:
             rect = pygame.Rect(235 + (60*(i % 9)), 335 + (60*(i//9)), 50, 50)
             pygame.draw.rect(surface, self.game.BUTTON_BORDER, rect, border_radius=5)
             pygame.draw.rect(surface, self.game.INV_SLOT_BG, (238+(60*(i % 9)), 338+(60*(i//9)), 44, 44), border_radius=5)
-            if 1 in self.game.game.mouse_press and rect.collidepoint(mouse_pos):
-                if itemstack is None or self.item_on_mouse is None or itemstack.item_id != self.item_on_mouse.item_id:
-                    self.game.player.inventory[i], self.item_on_mouse = self.item_on_mouse, self.game.player.inventory[i]
-                else:
-                    self.game.player.inventory[i].count += self.item_on_mouse.count
-                    self.item_on_mouse = None
-
-            elif 3 in self.game.game.mouse_press and rect.collidepoint(mouse_pos):
-                if itemstack is None and self.item_on_mouse is not None:
-                    self.game.player.inventory[i] = ItemStack(self.item_on_mouse.item_id, 1)
-                    self.item_on_mouse.count -= 1
-                    if self.item_on_mouse.count == 0:
-                        self.item_on_mouse = None
-                elif itemstack is not None and self.item_on_mouse is not None and itemstack.item_id == self.item_on_mouse.item_id:
-                    self.game.player.inventory[i].count += 1
-                    self.item_on_mouse.count -= 1
-                    if self.item_on_mouse.count == 0:
-                        self.item_on_mouse = None
-                elif itemstack is not None and self.item_on_mouse is not None and itemstack.item_id != self.item_on_mouse.item_id:
-                    self.game.player.inventory[i], self.item_on_mouse = self.item_on_mouse, self.game.player.inventory[i]
-                elif itemstack is not None and self.item_on_mouse is None:
-                    count = self.game.player.inventory[i].count//2
-                    self.item_on_mouse = ItemStack(itemstack.item_id, count)
-                    self.game.player.inventory[i].count -= count
+            if (1 in self.game.game.mouse_press or 3 in self.game.game.mouse_press) and rect.collidepoint(mouse_pos):
+                self.item_on_mouse, self.game.player.inventory[i] = self.handle_inv_click(self.item_on_mouse, itemstack)
 
             if itemstack is not None:
                 surface.blit(itemstack.txt, (250 + (60*(i % 9)), 350+(60*(i//9))))
@@ -59,10 +37,14 @@ class InventoryView:
                     hovered_item = itemstack
 
         if hovered_item is not None:
-            render = self.game.ITEM_HINT_FONT.render(hovered_item.name, False, (0, 0, 0))
-            pygame.draw.rect(surface, (50, 50, 50), (mouse_pos[0] - 10, mouse_pos[1] - render.get_height() - 15, render.get_width() + 20, render.get_height() + 20), border_radius=5)
-            pygame.draw.rect(surface, (120, 120, 120), (mouse_pos[0] - 5, mouse_pos[1] - render.get_height() - 10, render.get_width() + 10, render.get_height() + 10), border_radius=5)
-            surface.blit(self.game.ITEM_HINT_FONT.render(hovered_item.name, False, (0, 0, 0)), (mouse_pos[0], mouse_pos[1] - render.get_height() - 5))
+            behind_message = ""
+            if hovered_item.behind:
+                behind_message = "(behind)"
+
+            render = self.game.ITEM_HINT_FONT.render(f"{hovered_item.name} {behind_message}", False, (0, 0, 0))
+            pygame.draw.rect(surface, (70, 70, 70), (mouse_pos[0] - 10, mouse_pos[1] - render.get_height() - 15, render.get_width() + 20, render.get_height() + 20), border_radius=5)
+            pygame.draw.rect(surface, (140, 140, 140), (mouse_pos[0] - 5, mouse_pos[1] - render.get_height() - 10, render.get_width() + 10, render.get_height() + 10), border_radius=5)
+            surface.blit(render, (mouse_pos[0], mouse_pos[1] - render.get_height() - 5))
 
         # wyswietlanie itemu trzymanego na myszce
         if self.item_on_mouse is not None:
@@ -79,6 +61,20 @@ class InventoryView:
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
             self.game.screen_state = "game"
             self.game.to_update = [self.game, self.game.player]
+            for i, itemstack in enumerate(self.crafting_slots[:-1]):
+                self.game.player.drop_item(itemstack)
+
+                self.crafting_slots = [None, None, None, None, None]
+            self.game.player.drop_item(self.item_on_mouse)
+            self.item_on_mouse = None
+
+        elif pygame.key.get_pressed()[pygame.K_e]:
+            for i, itemstack in enumerate(self.crafting_slots[:-1]):
+                self.game.player.drop_item(itemstack)
+
+            self.crafting_slots = [None, None, None, None, None]
+            self.game.player.drop_item(self.item_on_mouse)
+            self.item_on_mouse = None
 
         inv_background = pygame.Surface(self.game.screen.get_size(), 32).convert_alpha()
         inv_background.fill((0,0,0,150))
@@ -101,7 +97,7 @@ class InventoryView:
             else:
                 position = [self.game.player.pos[0],self.game.player.pos[1]+1.5]
             for i in range(self.item_on_mouse.count):
-                self.game.create_item_on_ground(self.item_on_mouse.item_id, position, immunite=30, velocity=[v,0])
+                self.game.create_item_on_ground(self.item_on_mouse.item_id, position, immunite=30, velocity=[v,0], behind=self.item_on_mouse.behind)
             self.item_on_mouse = None
 
 
@@ -144,10 +140,13 @@ class InventoryView:
 
         # Wyswietlanie nazwy przedmiotu po najechaniu (w craftingu)
         if hovered is not None and self.crafting_slots[hovered] is not None:
+            behind_message = ""
+            if self.crafting_slots[hovered].behind:
+                behind_message = " (behind)"
             mouse_pos = pygame.mouse.get_pos()
-            render = self.game.ITEM_HINT_FONT.render(self.crafting_slots[hovered].name, False, (0, 0, 0))
-            pygame.draw.rect(self.game.screen, (50, 50, 50), (mouse_pos[0] - 10, mouse_pos[1] - render.get_height() - 15, render.get_width() + 20, render.get_height() + 20), border_radius=5)
-            pygame.draw.rect(self.game.screen, (120, 120, 120), (mouse_pos[0] - 5, mouse_pos[1] - render.get_height() - 10, render.get_width() + 10, render.get_height() + 10), border_radius=5)
+            render = self.game.ITEM_HINT_FONT.render(self.crafting_slots[hovered].name + behind_message, False, (0, 0, 0))
+            pygame.draw.rect(self.game.screen, (70, 70, 70), (mouse_pos[0] - 10, mouse_pos[1] - render.get_height() - 15, render.get_width() + 20, render.get_height() + 20), border_radius=5)
+            pygame.draw.rect(self.game.screen, (140, 140, 140), (mouse_pos[0] - 5, mouse_pos[1] - render.get_height() - 10, render.get_width() + 10, render.get_height() + 10), border_radius=5)
             self.game.screen.blit(render, (mouse_pos[0], mouse_pos[1] - render.get_height() - 5))
 
         crafting_shape = [[0,0],[0,0]]
@@ -158,36 +157,14 @@ class InventoryView:
                         self.item_on_mouse = self.crafting_slots[4]
                         self.crafting_slots[4] = None
                         self.get_crafted_item()
-                    elif self.item_on_mouse is not None and self.item_on_mouse.item_id == self.crafting_slots[4].item_id:
+                    elif self.item_on_mouse is not None and self.item_on_mouse.item_id == self.crafting_slots[4].item_id and self.item_on_mouse.behind == self.crafting_slots[4].behind:
                         self.item_on_mouse.count += self.crafting_slots[4].count
                         self.crafting_slots[4] = None
                         self.get_crafted_item()
-
             else:
-                if 1 in self.game.game.mouse_press:
-                    if self.crafting_slots[clicked] is None or self.item_on_mouse is None or self.crafting_slots[clicked].item_id != self.item_on_mouse.item_id:
-                        self.crafting_slots[clicked], self.item_on_mouse = self.item_on_mouse, self.crafting_slots[clicked]
-                    else:
-                        self.crafting_slots[clicked].count += self.item_on_mouse.count
-                        self.item_on_mouse = None
+                if 1 in self.game.game.mouse_press or 3 in self.game.game.mouse_press:
+                    self.item_on_mouse, self.crafting_slots[clicked] = self.handle_inv_click(self.item_on_mouse, self.crafting_slots[clicked])
 
-                elif 3 in self.game.game.mouse_press:
-                    if self.crafting_slots[clicked] is None and self.item_on_mouse is not None:
-                        self.crafting_slots[clicked] = ItemStack(self.item_on_mouse.item_id, 1)
-                        self.item_on_mouse.count -= 1
-                        if self.item_on_mouse.count == 0:
-                            self.item_on_mouse = None
-                    elif self.crafting_slots[clicked] is not None and self.item_on_mouse is not None and self.crafting_slots[clicked].item_id == self.item_on_mouse.item_id:
-                        self.crafting_slots[clicked].count += 1
-                        self.item_on_mouse.count -= 1
-                        if self.item_on_mouse.count == 0:
-                            self.item_on_mouse = None
-                    elif self.crafting_slots[clicked] is not None and self.item_on_mouse is not None and self.crafting_slots[clicked].item_id != self.item_on_mouse.item_id:
-                        self.crafting_slots[clicked], self.item_on_mouse = self.item_on_mouse, self.crafting_slots[clicked]
-                    elif self.crafting_slots[clicked] is not None and self.item_on_mouse is None:
-                        count = self.crafting_slots[clicked].count//2
-                        self.item_on_mouse = ItemStack(self.crafting_slots[clicked].item_id, count)
-                        self.crafting_slots[clicked].count -= count
             for i in range(4):
                 if self.crafting_slots[i] is None:
                     crafting_shape[i//2][i % 2] = 0
@@ -201,13 +178,13 @@ class InventoryView:
             if item_in_slot is not None:
                 if item_on_mouse is None:
                     return item_in_slot, None
-                elif item_in_slot.item_id == item_on_mouse.item_id:
+                elif item_in_slot.item_id == item_on_mouse.item_id and item_in_slot.behind == item_on_mouse.behind:
                     item_on_mouse.count += item_in_slot.count
                     return item_on_mouse, None
             return item_on_mouse, item_in_slot
         else:
             if 1 in self.game.game.mouse_press:
-                if item_in_slot is None or item_on_mouse is None or item_in_slot.item_id != item_on_mouse.item_id:
+                if item_in_slot is None or item_on_mouse is None or item_in_slot.item_id != item_on_mouse.item_id or item_in_slot.behind != item_on_mouse.behind:
                     item_in_slot, item_on_mouse = item_on_mouse, item_in_slot
                 else:
                     item_in_slot.count += item_on_mouse.count
@@ -215,21 +192,25 @@ class InventoryView:
 
             elif 3 in self.game.game.mouse_press:
                 if item_in_slot is None and item_on_mouse is not None:
-                    item_in_slot = ItemStack(item_on_mouse.item_id, 1)
+                    item_in_slot = ItemStack(item_on_mouse.item_id, 1, behind=item_on_mouse.behind)
                     item_on_mouse.count -= 1
                     if item_on_mouse.count == 0:
                         item_on_mouse = None
-                elif item_in_slot is not None and item_on_mouse is not None and item_in_slot.item_id == item_on_mouse.item_id:
+                elif item_in_slot is not None and item_on_mouse is not None and item_in_slot.item_id == item_on_mouse.item_id and item_in_slot.behind == item_on_mouse.behind:
                     item_in_slot.count += 1
                     item_on_mouse.count -= 1
                     if item_on_mouse.count == 0:
                         item_on_mouse = None
-                elif item_in_slot is not None and item_on_mouse is not None and item_in_slot.item_id != item_on_mouse.item_id:
+                elif item_in_slot is not None and item_on_mouse is not None and (item_in_slot.item_id != item_on_mouse.item_id or item_in_slot.behind != item_on_mouse.behind):
                     item_in_slot, item_on_mouse = item_on_mouse, item_in_slot
                 elif item_in_slot is not None and item_on_mouse is None:
                     count = item_in_slot.count // 2
-                    item_on_mouse = ItemStack(item_in_slot.item_id, count)
-                    item_in_slot.count -= count
+                    if count != 0:
+                        item_on_mouse = ItemStack(item_in_slot.item_id, count, behind=item_in_slot.behind)
+                        item_in_slot.count -= count
+                    else:
+                        item_on_mouse = ItemStack(item_in_slot.item_id, item_in_slot.count, behind=item_in_slot.behind)
+                        item_in_slot = None
 
             return item_on_mouse, item_in_slot
 
@@ -247,7 +228,10 @@ class InventoryView:
             try:
                 for recipe in item["crafting_recipe"]:
                     if recipe == shape:
-                        return ItemStack(id, item["crafting_amount"])
+                        behind = False
+                        if "default_behind" in item.keys():
+                            behind = item["default_behind"]
+                        return ItemStack(id, item["crafting_amount"], behind=behind)
             except KeyError:
                 pass
         return None

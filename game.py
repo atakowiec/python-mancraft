@@ -116,6 +116,7 @@ class Game:
                 elif self.screen_state == "inventory":
                     self.to_update = [self, self.player]
                     self.screen_state = "game"
+
                     if self.furnace_view.opened_furnace is not None:
                         self.furnace_view.opened_furnace = None
 
@@ -125,7 +126,7 @@ class Game:
                     self.screen_state = "pause_menu"
                     self.paused = True
 
-                elif self.screen_state == "pause_menu" or self.screen_state == "inventory":
+                elif self.screen_state == "pause_menu":
                     self.to_update = [self, self.player]
                     self.screen_state = "game"
                     self.paused = False
@@ -207,11 +208,12 @@ class Game:
                                 self.screen.blit(self.block_type[j.block_id]["txt"], (
                                     round((col - self.player.pos[0] + 25) * 20 + self.player.damage_earthquake[0], 2),
                                     round(640 - ((row - self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1],2)))
-                                # self.screen.blit(sur, (
-                                #     round((col - self.player.pos[0] + 25) * 20 + self.player.damage_earthquake[0], 2),
-                                #     round(
-                                #         640 - ((row - self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1],
-                                #         2)))
+                                # if j.background:
+                                #     sur = pygame.Surface((20,20), 32).convert_alpha()
+                                #     sur.fill((0,0,0,120))
+                                #     self.screen.blit(sur, (
+                                #         round((col - self.player.pos[0] + 25) * 20 + self.player.damage_earthquake[0], 2),
+                                #         round(640 - ((row - self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1], 2)))
                             else:
                                 if rect.collidepoint(mouse_pos):
                                     line_color = (220, 0, 0)
@@ -230,7 +232,9 @@ class Game:
         for i, item in enumerate(self.items_on_ground):
             item.update()
 
-            if item.life_time > 5000 or (item.to_remove and item.life_time > self.TICK * 1):
+            if item.life_time > 5000:
+                del self.items_on_ground[i]
+            elif item.to_remove and item.life_time > self.TICK:
                 del self.items_on_ground[i]
                 self.player.add_to_inventory(item)
             else:
@@ -250,8 +254,8 @@ class Game:
         self.screen.blit(block_darkness, (0,0))
         self.furnace_view.update()
 
-    def create_item_on_ground(self, item_id, pos, immunite=0, velocity=None, life_time=0):
-        self.items_on_ground.append(DroppedItem(self, item_id, pos, immunite=immunite, velocity=velocity, life_time=life_time))
+    def create_item_on_ground(self, item_id, pos, immunite=0, velocity=None, life_time=0, behind=False):
+        self.items_on_ground.append(DroppedItem(self, item_id, pos, immunite=immunite, velocity=velocity, life_time=life_time, behind=behind))
 
     def load_world(self):
         try:
@@ -286,7 +290,13 @@ class Game:
                     if itemstack is None:
                         self.player.inventory[index] = None
                     else:
-                        self.player.inventory[index] = ItemStack(itemstack["item_id"], itemstack["count"])
+                        behind = False
+                        count = 1
+                        if "behind" in itemstack.keys():
+                            behind = itemstack["behind"]
+                        if "count" in itemstack.keys():
+                            count = itemstack["count"]
+                        self.player.inventory[index] = ItemStack(itemstack["item_id"], count, behind=behind)
 
             # Ladowanie entities
             with open(save_dir+"/entity.txt") as file:
@@ -358,7 +368,8 @@ class Game:
                 if itemstack is not None:
                     inv.append({
                                 "item_id": itemstack.item_id,
-                                "count": itemstack.count
+                                "count": itemstack.count,
+                                "behind": itemstack.behind
                                 })
                 else:
                     inv.append(None)

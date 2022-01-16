@@ -3,10 +3,11 @@ import pygame.draw
 
 
 class DroppedItem:
-    def __init__(self, game, item_id, pos, immunite=0, velocity=None, life_time = 0):
+    def __init__(self, game, item_id, pos, immunite=0, velocity=None, life_time=0, behind=False):
         self.game = game
         self.world = self.game.world
 
+        self.behind = behind
         self.type = item_id
         self.pos = [pos[0] + 0.25 + (random.randint(1, 10)-5)/10, pos[1] + 0.25]
         self.size = (10, 10)

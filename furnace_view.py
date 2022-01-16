@@ -136,9 +136,12 @@ class FurnaceView:
         # Wyswietlanie nazwy przedmiotu po najechaniu (w furnace)
         if hovered_item is not None:
             mouse_pos = pygame.mouse.get_pos()
-            render = self.game.ITEM_HINT_FONT.render(hovered_item.name, False, (0, 0, 0))
-            pygame.draw.rect(self.game.screen, (50, 50, 50), (mouse_pos[0] - 10, mouse_pos[1] - render.get_height() - 15, render.get_width() + 20, render.get_height() + 20), border_radius=5)
-            pygame.draw.rect(self.game.screen, (120, 120, 120), (mouse_pos[0] - 5, mouse_pos[1] - render.get_height() - 10, render.get_width() + 10, render.get_height() + 10), border_radius=5)
+            behind_message = ""
+            if hovered_item.behind:
+                behind_message = " (behind)"
+            render = self.game.ITEM_HINT_FONT.render(hovered_item.name+behind_message, False, (0, 0, 0))
+            pygame.draw.rect(self.game.screen, (70, 70, 70), (mouse_pos[0] - 10, mouse_pos[1] - render.get_height() - 15, render.get_width() + 20, render.get_height() + 20), border_radius=5)
+            pygame.draw.rect(self.game.screen, (140, 140, 140), (mouse_pos[0] - 5, mouse_pos[1] - render.get_height() - 10, render.get_width() + 10, render.get_height() + 10), border_radius=5)
             self.game.screen.blit(render, (mouse_pos[0], mouse_pos[1] - render.get_height() - 5))
 
         if clicked == 3:

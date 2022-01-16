@@ -203,6 +203,7 @@ block_type = {
         "fortune": False,
         "crafting_recipe": [[[6]]],
         "crafting_amount": 4,
+        "default_behind": False,
         "intended_tool": [2],
         "required_tool_level": 0
     },
@@ -217,6 +218,7 @@ block_type = {
         "fortune": False,
         "crafting_recipe": [[[13,13],[13,13]]],
         "crafting_amount": 1,
+        "default_behind": True,
         "intended_tool": [2],
         "required_tool_level": 0
     },
@@ -231,6 +233,7 @@ block_type = {
         "fortune": False,
         "crafting_recipe": [[[5,5,5],[5,0,5],[5,5,5]]],
         "crafting_amount": 1,
+        "default_behind": True,
         "intended_tool": [1],
         "required_tool_level": 1
     },
@@ -297,6 +300,7 @@ block_type = {
         "type": "block",
         "crafting_recipe": [[[1,1],[1,1]]],
         "crafting_amount": 1,
+        "default_behind": True,
         "drop": [25],
         "amount": [1],
         "drop_probability": 1,
