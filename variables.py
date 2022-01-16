@@ -21,6 +21,32 @@ furnace_recipes = {
     6: 22,
 }
 
+color_modes = {
+    "dark_mode": {
+        "main_menu_background": pygame.image.load("textures/backgrounds/main_menu_dark.png"),
+        "main_menu_text_shadow": (33,76,127),
+        "main_menu_text": (63,106,157),
+        "main_menu_button_bg": (15,50,64),
+        "main_menu_button_border": (63,106,157),
+        "main_menu_button_bg_hover": (35,70,84),
+        "inv_slot_bg": (5,40,54),
+        "inv_border": (63,106,157),
+        "inv_bg": (15,50,64)
+    },
+    "light_mode": {
+        "main_menu_background": pygame.image.load("textures/backgrounds/main_menu.png"),
+        "main_menu_text_shadow": (0,0,0),
+        "main_menu_text": (255,255,255),
+        "main_menu_button_bg": (140, 140, 140),
+        "main_menu_button_border": (40, 40, 40),
+        "main_menu_button_bg_hover": (100, 100, 100),
+        "inv_slot_bg": (140, 140, 140),
+        "inv_border": (0,0,0),
+        "inv_bg": (180,180,180)
+    }
+
+}
+
 block_type = {
     1: {
         "name": "stone",

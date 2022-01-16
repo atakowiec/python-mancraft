@@ -78,8 +78,8 @@ class FurnaceView:
 
                 # tło
                 bg_rect = pygame.Rect(215, 50, 570, 535)
-                pygame.draw.rect(self.game.screen, (0,0,0), bg_rect, border_radius=10)
-                pygame.draw.rect(self.game.screen, (180,180,180), (220, 55, 560, 525), border_radius=10)
+                pygame.draw.rect(self.game.screen, self.game.INV_BORDER, bg_rect, border_radius=10)
+                pygame.draw.rect(self.game.screen, self.game.INV_BG, (220, 55, 560, 525), border_radius=10)
 
                 self.display_furnace(index)
                 self.game.inventory_view.display_inventory()
@@ -112,8 +112,8 @@ class FurnaceView:
             x = e[0] + x_pos
             y = e[1] + y_pos
             rect = pygame.Rect(x, y, e[2], e[3])
-            pygame.draw.rect(self.game.screen, (50, 50, 50), rect, border_radius=5)
-            pygame.draw.rect(self.game.screen, (120, 120, 120), (x+3, y+3, e[2]-6, e[3]-6), border_radius=5)
+            pygame.draw.rect(self.game.screen, self.game.BUTTON_BORDER, rect, border_radius=5)
+            pygame.draw.rect(self.game.screen, self.game.INV_SLOT_BG, (x+3, y+3, e[2]-6, e[3]-6), border_radius=5)
 
             if i == 3:
                 pygame.draw.rect(self.game.screen, (255, 255, 0), (x+3, y+3+(e[3]-6)*(1-furnace[4]/furnace[6]), e[2]-6, (e[3]-6)*(furnace[4]/furnace[6])), border_radius=5)

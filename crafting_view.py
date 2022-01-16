@@ -21,8 +21,8 @@ class CraftingView:
 
         # Tło
         bg_rect = pygame.Rect(215, 50, 570, 535)
-        pygame.draw.rect(self.game.screen, (0,0,0), bg_rect, border_radius=10)
-        pygame.draw.rect(self.game.screen, (180,180,180), (220, 55, 560, 525), border_radius=10)
+        pygame.draw.rect(self.game.screen, self.game.INV_BORDER, bg_rect, border_radius=10)
+        pygame.draw.rect(self.game.screen, self.game.INV_BG, (220, 55, 560, 525), border_radius=10)
 
         self.display_crafting_3x3(475, 100)
         self.game.inventory_view.display_inventory()
@@ -49,8 +49,8 @@ class CraftingView:
         for i in range(9):
             rect = pygame.Rect(x + (60 * (i % 3)), y + (60 * (i // 3)), 50, 50)
 
-            pygame.draw.rect(self.game.screen, (50, 50, 50), rect, border_radius=5)
-            pygame.draw.rect(self.game.screen, (120, 120, 120),
+            pygame.draw.rect(self.game.screen, self.game.BUTTON_BORDER, rect, border_radius=5)
+            pygame.draw.rect(self.game.screen, self.game.INV_SLOT_BG,
                              (x + 3 + (60 * (i % 3)), y + 3 + (60 * (i // 3)), 44, 44), border_radius=5)
 
             if self.crafting_slots[i] is not None:
@@ -66,8 +66,8 @@ class CraftingView:
                 hovered = i
 
         rect = pygame.Rect(x + 200, y + 60, 50, 50)
-        pygame.draw.rect(self.game.screen, (50, 50, 50), rect, border_radius=5)
-        pygame.draw.rect(self.game.screen, (120, 120, 120), (x + 203, y + 63, 44, 44), border_radius=5)
+        pygame.draw.rect(self.game.screen, self.game.BUTTON_BORDER, rect, border_radius=5)
+        pygame.draw.rect(self.game.screen, self.game.INV_SLOT_BG, (x + 203, y + 63, 44, 44), border_radius=5)
 
         if self.crafting_slots[9] is not None:
             self.game.screen.blit(self.crafting_slots[9].txt, (x + 215, y + 75))

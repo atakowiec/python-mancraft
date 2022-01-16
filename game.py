@@ -13,7 +13,7 @@ from pause_menu import PauseMenu
 from itemstack import ItemStack
 from entity import Entity
 from furnace_view import FurnaceView
-from variables import block_type
+from variables import block_type, color_modes
 
 
 class Game:
@@ -61,6 +61,16 @@ class Game:
 
         self.MOON_IMAGE = pygame.image.load("textures/environment/moon.png")
         self.SUN_IMAGE = pygame.image.load("textures/environment/sun.png")
+
+        # colors
+        self.TEXT_COLOR = color_modes[self.game.settings["color_mode"]]["main_menu_text"]
+        self.SHADOW_COLOR = color_modes[self.game.settings["color_mode"]]["main_menu_text_shadow"]
+        self.BUTTON_BG = color_modes[self.game.settings["color_mode"]]["main_menu_button_bg"]
+        self.BUTTON_BG_HOVER = color_modes[self.game.settings["color_mode"]]["main_menu_button_bg_hover"]
+        self.BUTTON_BORDER = color_modes[self.game.settings["color_mode"]]["main_menu_button_border"]
+        self.INV_SLOT_BG = color_modes[self.game.settings["color_mode"]]["inv_slot_bg"]
+        self.INV_BG = color_modes[self.game.settings["color_mode"]]["inv_bg"]
+        self.INV_BORDER = color_modes[self.game.settings["color_mode"]]["inv_border"]
 
         self.to_update = [self, self.player]
         self.items_on_ground = []
@@ -134,22 +144,28 @@ class Game:
 
         # mechanizm dnia i nocy
         day_lightness = pygame.Surface(self.screen.get_size(), 32).convert_alpha()
+        block_darkness = pygame.Surface(self.screen.get_size(), 32).convert_alpha()
         time_of_day = self.world.time_in_game % self.DAY_DURATION
         day_percent = (time_of_day / self.DAY_DURATION)
-        dark = 180
+        dark = 235
+        block_dark = 180
 
         if 0 < day_percent <= 0.05:
             # sunrise
             day_lightness.fill((0, 0, 0, dark - (dark * 20 * day_percent)))
+            block_darkness.fill((0, 0, 0, block_dark - (block_dark * 20 * day_percent)))
         elif 0.05 < day_percent <= 0.45:
             # day
             day_lightness.fill((0, 0, 0, 0))
+            block_darkness.fill((0, 0, 0, 0))
         elif 0.45 < day_percent <= 0.5:
             # sunset
             day_lightness.fill((0, 0, 0, 0 + (dark * 20 * (day_percent - 0.45))))
+            block_darkness.fill((0, 0, 0, 0 + (block_dark * 20 * (day_percent - 0.45))))
         else:
             # night
-            day_lightness.fill((0, 0, 0, dark))
+            day_lightness.fill((0, 0, 10, dark))
+            block_darkness.fill((0, 0, 0, block_dark))
         self.screen.blit(day_lightness, (0, 0))
 
         moon_x = self.screen.get_width() * day_percent * 2 - self.screen.get_width()
@@ -191,6 +207,11 @@ class Game:
                                 self.screen.blit(self.block_type[j.block_id]["txt"], (
                                     round((col - self.player.pos[0] + 25) * 20 + self.player.damage_earthquake[0], 2),
                                     round(640 - ((row - self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1],2)))
+                                # self.screen.blit(sur, (
+                                #     round((col - self.player.pos[0] + 25) * 20 + self.player.damage_earthquake[0], 2),
+                                #     round(
+                                #         640 - ((row - self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1],
+                                #         2)))
                             else:
                                 if rect.collidepoint(mouse_pos):
                                     line_color = (220, 0, 0)
@@ -226,6 +247,7 @@ class Game:
         for entity in self.entity_list:
             entity.update()
 
+        self.screen.blit(block_darkness, (0,0))
         self.furnace_view.update()
 
     def create_item_on_ground(self, item_id, pos, immunite=0, velocity=None, life_time=0):
@@ -322,7 +344,7 @@ class Game:
                             temp["background"] = True
                     line.append(temp)
                 data.append(line)
-            file.write(json.dumps(data, indent=1))
+            file.write(json.dumps(data))
         print("Saved: world")
 
         with open(default+"/player.txt", "w") as file:

@@ -18,11 +18,11 @@ class InventoryView:
         mouse_pos = pygame.mouse.get_pos()
         mouse_pos = [mouse_pos[0]-surface_pos[0], mouse_pos[1]-surface_pos[1]]
         hovered_item = None
-
+        
         for i, itemstack in enumerate(self.game.player.inventory):
             rect = pygame.Rect(235 + (60*(i % 9)), 335 + (60*(i//9)), 50, 50)
-            pygame.draw.rect(surface, (50,50,50), rect, border_radius=5)
-            pygame.draw.rect(surface, (120,120,120), (238+(60*(i % 9)), 338+(60*(i//9)), 44, 44), border_radius=5)
+            pygame.draw.rect(surface, self.game.BUTTON_BORDER, rect, border_radius=5)
+            pygame.draw.rect(surface, self.game.INV_SLOT_BG, (238+(60*(i % 9)), 338+(60*(i//9)), 44, 44), border_radius=5)
             if 1 in self.game.game.mouse_press and rect.collidepoint(mouse_pos):
                 if itemstack is None or self.item_on_mouse is None or itemstack.item_id != self.item_on_mouse.item_id:
                     self.game.player.inventory[i], self.item_on_mouse = self.item_on_mouse, self.game.player.inventory[i]
@@ -49,7 +49,6 @@ class InventoryView:
                     self.game.player.inventory[i].count -= count
 
             if itemstack is not None:
-                # pygame.draw.rect(self.game.screen, itemstack.txt, (25 + (60*(i % 9)), 25+(60*(i//9)), 20, 20))
                 surface.blit(itemstack.txt, (250 + (60*(i % 9)), 350+(60*(i//9))))
                 if itemstack.count > 1:
                     text = self.game.font.render(str(itemstack.count), False, (255, 255, 255))
@@ -87,8 +86,8 @@ class InventoryView:
 
         # Tło
         bg_rect = pygame.Rect(215, 50, 570, 535)
-        pygame.draw.rect(self.game.screen, (0,0,0), bg_rect, border_radius=10)
-        pygame.draw.rect(self.game.screen, (180,180,180), (220, 55, 560, 525), border_radius=10)
+        pygame.draw.rect(self.game.screen, self.game.INV_BORDER, bg_rect, border_radius=10)
+        pygame.draw.rect(self.game.screen, self.game.INV_BG, (220, 55, 560, 525), border_radius=10)
 
         self.display_crafting_2x2(550, 150)
         self.display_inventory()
@@ -112,8 +111,8 @@ class InventoryView:
         for i in range(4):
             rect = pygame.Rect(x + (60*(i % 2)), y+(60*(i//2)), 50, 50)
 
-            pygame.draw.rect(self.game.screen, (50,50,50), rect, border_radius=5)
-            pygame.draw.rect(self.game.screen, (120,120,120), (x + 3 + (60*(i % 2)), y+3+(60*(i//2)), 44, 44), border_radius=5)
+            pygame.draw.rect(self.game.screen, self.game.BUTTON_BORDER, rect, border_radius=5)
+            pygame.draw.rect(self.game.screen, self.game.INV_SLOT_BG, (x + 3 + (60*(i % 2)), y+3+(60*(i//2)), 44, 44), border_radius=5)
 
             if self.crafting_slots[i] is not None:
                 self.game.screen.blit(self.crafting_slots[i].txt, (x + 15 + (60*(i % 2)), y+15+(60*(i//2))))
@@ -128,8 +127,8 @@ class InventoryView:
                 hovered = i
 
         rect = pygame.Rect(x + 140, y + 30, 50, 50)
-        pygame.draw.rect(self.game.screen, (50,50,50), rect, border_radius=5)
-        pygame.draw.rect(self.game.screen, (120,120,120), (x + 143, y + 33, 44, 44), border_radius=5)
+        pygame.draw.rect(self.game.screen, self.game.BUTTON_BORDER, rect, border_radius=5)
+        pygame.draw.rect(self.game.screen, self.game.INV_SLOT_BG, (x + 143, y + 33, 44, 44), border_radius=5)
 
         if self.crafting_slots[4] is not None:
             self.game.screen.blit(self.crafting_slots[4].txt, (x + 155, y + 45))

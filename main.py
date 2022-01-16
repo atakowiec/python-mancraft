@@ -1,3 +1,5 @@
+import json
+
 import pygame
 from main_menu import MainMenu
 from game import Game
@@ -23,6 +25,12 @@ class Main:
         self.GAME_PATH = os.path.join(os.environ["appdata"], "mankraft")
 
         self.create_default_tree()
+
+        # Ladowanie ustawien
+        self.settings = {}
+        with open(os.path.join(self.GAME_PATH, "options.txt")) as file:
+            self.settings = json.loads(file.read())
+
 
         self.game = None
         self.main_menu = MainMenu(self)
@@ -60,11 +68,18 @@ class Main:
             pygame.display.flip()
             self.screen.fill((0, 0, 0))
 
+        # Zapisywanie ustawien
+        with open(os.path.join(self.GAME_PATH, "options.txt"), "w") as file:
+            file.write(json.dumps(self.settings, indent=1))
+
     def create_default_tree(self):
         if not os.path.exists(self.GAME_PATH):
             os.makedirs(self.GAME_PATH)
         if not os.path.exists(os.path.join(self.GAME_PATH, "saves")):
             os.makedirs(os.path.join(self.GAME_PATH, "saves"))
+        if not os.path.exists(os.path.join(self.GAME_PATH, "options.txt")):
+            with open(os.path.join(self.GAME_PATH, "options.txt"), "x") as file:
+                file.write(json.dumps({"color_mode": "dark_mode"}, indent=1))
 
 
 if __name__ == '__main__':

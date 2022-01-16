@@ -75,7 +75,7 @@ class Player:
                 pygame.draw.rect(self.game.screen, (100,100,100), (232 + (60*i), 12, 46, 46), border_radius=5)
             else:
                 pygame.draw.rect(self.game.screen, (50,50,50), (230 + (60*i), 10, 50, 50), border_radius=5)
-                pygame.draw.rect(self.game.screen, (120,120,120), (233 + (60*i), 13, 44, 44), border_radius=5)
+                pygame.draw.rect(self.game.screen, (140,140,140), (233 + (60*i), 13, 44, 44), border_radius=5)
 
             if self.inventory[i] is not None:
                 # pygame.draw.rect(self.game.screen, self.inventory[i].txt, (245 + (60*i), 25, 20, 20))
@@ -115,8 +115,8 @@ class Player:
             vector[0] -= 0.25
 
         # Magiczna siła zapobiegająca blokowaniu w klockach
-        if not self.game.world.blocks[int(self.pos[0])][int(self.pos[1])].background or not self.game.world.blocks[int(self.pos[0]+0.9)][int(self.pos[1])].background:
-            self.pos[1] = int(self.pos[1]+1)
+        # if not self.game.world.blocks[int(self.pos[0])][int(self.pos[1])].background or not self.game.world.blocks[int(self.pos[0]+0.9)][int(self.pos[1])].background:
+        #     self.pos[1] = int(self.pos[1]+1)
 
         # Kolizje gracza
         if vector[0] > 0:
