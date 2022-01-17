@@ -19,6 +19,13 @@ class Main:
         self.clicked_hold = []
         self.mouse_press = []
         self.mouse_hold = []
+        self.loading_screen_state = 0
+
+        self.FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 90)
+        self.MEDIUM_FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 50)
+        self.SMALL_FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 30)
+        self.TINY_FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 25)
+        self.SMALL_NORMAL_FONT = pygame.font.Font("textures/fonts/Merriweather-Regular.ttf", 30)
 
         # constants
         self.TICK = 30
@@ -49,11 +56,18 @@ class Main:
                     self.running = False
                 if event.type == pygame.KEYDOWN:
                     self.clicked_once.append(event)
-                    if self.state == "main_menu" and self.main_menu.input_focus and self.main_menu.screen_state == 2:
+                    if self.state == "main_menu" and self.main_menu.input_focus != -1 and self.main_menu.screen_state == 2:
                         if event.key == pygame.K_BACKSPACE:
-                            self.main_menu.entered_name = self.main_menu.entered_name[:-1]
+                            self.main_menu.entered_values[self.main_menu.input_focus] = self.main_menu.entered_values[self.main_menu.input_focus][:-1]
                         else:
-                            self.main_menu.entered_name += event.unicode
+                            if self.main_menu.input_focus == 1 and event.unicode.isnumeric():
+                                self.main_menu.entered_values[self.main_menu.input_focus] += event.unicode
+                                if self.main_menu.entered_values[self.main_menu.input_focus] != "":
+                                    if int(self.main_menu.entered_values[self.main_menu.input_focus]) > 20000:
+                                        self.main_menu.entered_values[self.main_menu.input_focus] = "20000"
+                            elif self.main_menu.input_focus == 0:
+                                self.main_menu.entered_values[self.main_menu.input_focus] += event.unicode
+
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     self.mouse_press.append(event.button)
             self.clicked_hold = pygame.key.get_pressed()

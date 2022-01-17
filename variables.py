@@ -56,7 +56,6 @@ block_type = {
         "drop": [5],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [1],
         "required_tool_level": 1
     },
@@ -68,7 +67,6 @@ block_type = {
         "drop": [3],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [3],
         "required_tool_level": 0
     },
@@ -80,7 +78,6 @@ block_type = {
         "drop": [3],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [3],
         "required_tool_level": 0
     },
@@ -92,7 +89,6 @@ block_type = {
         "drop": [4],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [],
         "required_tool_level": 20
     },
@@ -104,7 +100,6 @@ block_type = {
         "drop": [5],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [1],
         "required_tool_level": 1
     },
@@ -116,7 +111,6 @@ block_type = {
         "drop": [6],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [2],
         "required_tool_level": 0
     },
@@ -128,7 +122,6 @@ block_type = {
         "drop": [22],
         "amount": [0],
         "drop_probability": 0.1,
-        "fortune": False,
         "intended_tool": [5],
         "required_tool_level": 0
     },
@@ -152,7 +145,6 @@ block_type = {
         "drop": [9],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [1],
         "required_tool_level": 3
     },
@@ -164,7 +156,6 @@ block_type = {
         "drop": [10],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [1],
         "required_tool_level": 2
     },
@@ -200,7 +191,6 @@ block_type = {
         "drop": [13],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "crafting_recipe": [[[6]]],
         "crafting_amount": 4,
         "default_behind": False,
@@ -215,7 +205,6 @@ block_type = {
         "drop": [14],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "crafting_recipe": [[[13,13],[13,13]]],
         "crafting_amount": 1,
         "default_behind": True,
@@ -230,7 +219,6 @@ block_type = {
         "drop": [15],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "crafting_recipe": [[[5,5,5],[5,0,5],[5,5,5]]],
         "crafting_amount": 1,
         "default_behind": True,
@@ -275,7 +263,6 @@ block_type = {
         "drop": [22],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [5],
         "required_tool_level": 0
     },
@@ -304,7 +291,6 @@ block_type = {
         "drop": [25],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [1],
         "required_tool_level": 1
     },
@@ -325,7 +311,6 @@ block_type = {
         "drop": [30],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [5],
         "required_tool_level": 0
     },
@@ -337,7 +322,6 @@ block_type = {
         "drop": [31],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [5],
         "required_tool_level": 0
     },
@@ -349,7 +333,6 @@ block_type = {
         "drop": [32],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [5],
         "required_tool_level": 0
     },
@@ -361,7 +344,6 @@ block_type = {
         "drop": [33],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [5],
         "required_tool_level": 0
     },
@@ -373,7 +355,6 @@ block_type = {
         "drop": [34],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [5],
         "required_tool_level": 0
     },
@@ -385,7 +366,6 @@ block_type = {
         "drop": [35],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [5],
         "required_tool_level": 0
     },
@@ -397,7 +377,6 @@ block_type = {
         "drop": [36],
         "amount": [1],
         "drop_probability": 1,
-        "fortune": False,
         "intended_tool": [5],
         "required_tool_level": 0
     },
@@ -540,6 +519,73 @@ block_type = {
         "tool_level": 4,
         "crafting_recipe": [[[16],[23],[23]]],
         "crafting_amount": 1
+    },
+    # Miejsce na miecz i motykę
+    61: {
+        "name": "coal block",
+        "breaking_time": 2,
+        "txt": pygame.image.load("textures/blocks/coal_block.png"),
+        "type": "block",
+        "drop": [61],
+        "amount": [1],
+        "drop_probability": 1,
+        "crafting_recipe": [[[19,19,19],[19,19,19],[19,19,19]]],
+        "crafting_amount": 1,
+        "intended_tool": [1],
+        "required_tool_level": 1
+    },
+    62: {
+        "name": "iron block",
+        "breaking_time": 2,
+        "txt": pygame.image.load("textures/blocks/iron_block.png"),
+        "type": "block",
+        "drop": [62],
+        "amount": [1],
+        "drop_probability": 1,
+        "crafting_recipe": [[[18,18,18],[18,18,18],[18,18,18]]],
+        "crafting_amount": 1,
+        "intended_tool": [1],
+        "required_tool_level": 1
+    },
+    63: {
+        "name": "gold block",
+        "breaking_time": 2,
+        "txt": pygame.image.load("textures/blocks/gold_block.png"),
+        "type": "block",
+        "drop": [63],
+        "amount": [1],
+        "drop_probability": 1,
+        "crafting_recipe": [[[17,17,17],[17,17,17],[17,17,17]]],
+        "crafting_amount": 1,
+        "intended_tool": [1],
+        "required_tool_level": 1
+    },
+    64: {
+        "name": "diamond block",
+        "breaking_time": 2,
+        "txt": pygame.image.load("textures/blocks/diamond_block.png"),
+        "type": "block",
+        "drop": [64],
+        "amount": [1],
+        "drop_probability": 1,
+        "crafting_recipe": [[[16,16,16],[16,16,16],[16,16,16]]],
+        "crafting_amount": 1,
+        "intended_tool": [1],
+        "required_tool_level": 1
+    },
+    65: {
+        "name": "lapis block",
+        "breaking_time": 2,
+        "txt": pygame.image.load("textures/blocks/lapis_block.png"),
+        "type": "block",
+        "drop": [65],
+        "amount": [1],
+        "drop_probability": 1,
+        "crafting_recipe": [[[20,20,20],[20,20,20],[20,20,20]]],
+        "crafting_amount": 1,
+        "intended_tool": [1],
+        "required_tool_level": 1
     }
+
 
 }

@@ -54,5 +54,6 @@ class PauseMenu:
                 self.game.game.game = None
                 self.game.game.state = "main_menu"
                 self.game.game.main_menu.screen_state = 1
+                del self.game
 
         self.screen.blit(surface, (0,0))

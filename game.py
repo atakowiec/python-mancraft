@@ -17,12 +17,12 @@ from variables import block_type, color_modes
 
 
 class Game:
-    def __init__(self, game, world_id, world_name="New world"):
+    def __init__(self, game, world_id, world_name="New world", world_size=5000):
         self.screen = game.screen
 
         self.game = game
         self.player = Player(self)
-        self.world = World()
+        self.world = World(world_size)
         self.pause_menu = PauseMenu(self)
         self.furnace_view = FurnaceView(self)
         self.inventory_view = InventoryView(self)
@@ -95,6 +95,8 @@ class Game:
                 file.write(world_name+"\n")
                 date = datetime.datetime.now()
                 file.write(f"{date.day}.{date.month}.{date.year}\n")
+
+        self.game.loading_screen_state = 6
 
     def general_update(self):
         # mouse click
@@ -191,33 +193,34 @@ class Game:
 
         # Głowna pętla przechądząca po wszystkich blokach i obslugująca render, klikniecia itp
         for col in range(int(self.player.pos[0] - 26), int(self.player.pos[0] + 27)):
-            if 0 <= col <= len(self.world.blocks) + 1:
+            if 0 <= col <= len(self.world.blocks):
                 try:
                     for row in range(int(self.player.pos[1] - 10), int(self.player.pos[1] + 25)):
-                        j = self.world.blocks[col][row]
-                        rect = pygame.Rect(
-                            round((col - self.player.pos[0] + 25) * 20 + self.player.damage_earthquake[0], 2),
-                            round(640 - ((row - self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1], 2),
-                            20, 20)
+                        if row >= 0:
+                            j = self.world.blocks[col][row]
+                            rect = pygame.Rect(
+                                round((col - self.player.pos[0] + 25) * 20 + self.player.damage_earthquake[0], 2),
+                                round(640 - ((row - self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1], 2),
+                                20, 20)
 
-                        if (self.mouse_click[0] or self.mouse_click[2]) and rect.collidepoint(mouse_pos):
-                            self.clicked_block = [col, row]
+                            if (self.mouse_click[0] or self.mouse_click[2]) and rect.collidepoint(mouse_pos):
+                                self.clicked_block = [col, row]
 
-                        if j.block_id != 0:
-                            if j.visible or self.world.blocks[col - 1][row].block_id == 0 or self.world.blocks[col + 1][row].block_id == 0 or self.world.blocks[col][row - 1].block_id == 0 or self.world.blocks[col][row + 1].block_id == 0:
-                                self.screen.blit(self.block_type[j.block_id]["txt"], (
-                                    round((col - self.player.pos[0] + 25) * 20 + self.player.damage_earthquake[0], 2),
-                                    round(640 - ((row - self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1],2)))
-                                # if j.background:
-                                #     sur = pygame.Surface((20,20), 32).convert_alpha()
-                                #     sur.fill((0,0,0,120))
-                                #     self.screen.blit(sur, (
-                                #         round((col - self.player.pos[0] + 25) * 20 + self.player.damage_earthquake[0], 2),
-                                #         round(640 - ((row - self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1], 2)))
-                            else:
-                                if rect.collidepoint(mouse_pos):
-                                    line_color = (220, 0, 0)
-                                pygame.draw.rect(self.screen, (10, 10, 10), rect)
+                            if j.block_id != 0:
+                                if j.visible or row == 0 or col == 0 or col == len(self.world.blocks)-1 or self.world.blocks[col - 1][row].block_id == 0 or self.world.blocks[col + 1][row].block_id == 0 or self.world.blocks[col][row - 1].block_id == 0 or self.world.blocks[col][row + 1].block_id == 0:
+                                    self.screen.blit(self.block_type[j.block_id]["txt"], (
+                                        round((col - self.player.pos[0] + 25) * 20 + self.player.damage_earthquake[0], 2),
+                                        round(640 - ((row - self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1],2)))
+                                    # if j.background:
+                                    #     sur = pygame.Surface((20,20), 32).convert_alpha()
+                                    #     sur.fill((0,0,0,120))
+                                    #     self.screen.blit(sur, (
+                                    #         round((col - self.player.pos[0] + 25) * 20 + self.player.damage_earthquake[0], 2),
+                                    #         round(640 - ((row - self.player.pos[1] + 10) * 20) + self.player.damage_earthquake[1], 2)))
+                                else:
+                                    if rect.collidepoint(mouse_pos):
+                                        line_color = (220, 0, 0)
+                                    pygame.draw.rect(self.screen, (10, 10, 10), rect)
 
                 except IndexError:
                     pass
@@ -264,6 +267,7 @@ class Game:
             with open(save_dir+"/world.txt") as file:
                 self.world.blocks = []
                 data = json.loads(file.read())
+                number_of_cols = len(data)
                 for col in data:
                     temp = []
                     for block in col:
@@ -279,7 +283,8 @@ class Game:
                                 background = block["background"]
                             temp.append(Block(block_id, visible, background))
                     self.world.blocks.append(temp)
-
+                    self.game.loading_screen_state += (1/number_of_cols)
+            self.game.loading_screen_state = 1
             # Ladowanie ekwipunku i pozycji
             with open(save_dir+"/player.txt") as file:
                 data = json.loads(file.read())
@@ -298,12 +303,14 @@ class Game:
                             count = itemstack["count"]
                         self.player.inventory[index] = ItemStack(itemstack["item_id"], count, behind=behind)
 
+            self.game.loading_screen_state = 2
             # Ladowanie entities
             with open(save_dir+"/entity.txt") as file:
                 data = json.loads(file.read())
                 for entity in data:
                     self.entity_list.append(Entity(self, entity["type"], entity["pos"], entity["task"], entity["task_duration"]))
 
+            self.game.loading_screen_state = 3
             # Ladowanie dropped items
             with open(save_dir+"/dropped_items.txt") as file:
                 self.items_on_ground = []
@@ -311,11 +318,7 @@ class Game:
                 for item in data:
                     self.create_item_on_ground(item_id=item["id"], pos=item["pos"], life_time=item["life_time"])
 
-            # Ladowanie ustawien swiata
-            with open(save_dir+"/world_data.txt") as file:
-                data = json.loads(file.read())
-                self.world.time_in_game = float(data['time_in_game'])
-
+            self.game.loading_screen_state = 4
             # Ladowanie piecykow
             with open(save_dir+"/furnaces.txt") as file:
                 data = json.loads(file.read())
@@ -335,6 +338,11 @@ class Game:
                         result = ItemStack(furnace["result"]["id"], furnace["result"]["count"])
                     self.furnace_view.create_furnace(pos, subject, fuel, result, fuel_left, smelting_ticks, fuel_full)
 
+            self.game.loading_screen_state = 5
+            # Ladowanie ustawien swiata
+            with open(save_dir+"/world_data.txt") as file:
+                data = json.loads(file.read())
+                self.world.time_in_game = float(data['time_in_game'])
         except FileNotFoundError:
             print("Save file not found, creating..")
 

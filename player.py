@@ -26,16 +26,32 @@ class Player:
         self.heart_images = (pygame.image.load("textures/gui/left_heart.png"), pygame.image.load("textures/gui/right_heart.png"), pygame.image.load("textures/gui/left_heart_empty.png"), pygame.image.load("textures/gui/right_heart_empty.png"))
         self.damage_earthquake_duration = 0
         self.damage_earthquake = [0, 0]
+        self.item_name_timer = 0
 
     def update(self):
+        # Wyswietlanie nazwy trzymanego itemu
+        if self.item_name_timer > 0:
+            self.item_name_timer -= 1
+            if self.inventory[self.current_slot] is not None:
+                item = self.inventory[self.current_slot]
+                msg = item.name
+                if item.behind and item.data['type'] == "block":
+                    msg += " (behind)"
+                text = self.game.game.TINY_FONT.render(msg, False, (0,0,0))
+                self.game.screen.blit(text, (self.game.screen.get_width()/2 - text.get_width()/2 + 2, 102))
+                text = self.game.game.TINY_FONT.render(msg, False, (220,220,220))
+                self.game.screen.blit(text, (self.game.screen.get_width()/2 - text.get_width()/2, 100))
+
         # scrollowanie slotow
         if self.game.game.mouse_press is not []:
             if 4 in self.game.game.mouse_press:
                 self.current_slot += 1
                 self.game.breaking_time = 0
+                self.item_name_timer = 45
             elif 5 in self.game.game.mouse_press:
                 self.current_slot -= 1
                 self.game.breaking_time = 0
+                self.item_name_timer = 45
 
             self.current_slot += 9
             self.current_slot %= 9
@@ -44,30 +60,39 @@ class Player:
             if event.key == pygame.K_1:
                 self.game.breaking_time = 0
                 self.current_slot = 0
+                self.item_name_timer = 45
             elif event.key == pygame.K_2:
                 self.game.breaking_time = 0
                 self.current_slot = 1
+                self.item_name_timer = 45
             elif event.key == pygame.K_3:
                 self.game.breaking_time = 0
                 self.current_slot = 2
+                self.item_name_timer = 45
             elif event.key == pygame.K_4:
                 self.game.breaking_time = 0
                 self.current_slot = 3
+                self.item_name_timer = 45
             elif event.key == pygame.K_5:
                 self.game.breaking_time = 0
                 self.current_slot = 4
+                self.item_name_timer = 45
             elif event.key == pygame.K_6:
                 self.game.breaking_time = 0
                 self.current_slot = 5
+                self.item_name_timer = 45
             elif event.key == pygame.K_7:
                 self.game.breaking_time = 0
                 self.current_slot = 6
+                self.item_name_timer = 45
             elif event.key == pygame.K_8:
                 self.game.breaking_time = 0
                 self.current_slot = 7
+                self.item_name_timer = 45
             elif event.key == pygame.K_9:
                 self.game.breaking_time = 0
                 self.current_slot = 8
+                self.item_name_timer = 45
 
         #  wyświetlanie ekwipunku
         for i in range(9):
@@ -116,8 +141,8 @@ class Player:
             vector[0] -= 0.25
 
         # Magiczna siła zapobiegająca blokowaniu w klockach
-        # if not self.game.world.blocks[int(self.pos[0])][int(self.pos[1])].background or not self.game.world.blocks[int(self.pos[0]+0.9)][int(self.pos[1])].background:
-        #     self.pos[1] = int(self.pos[1]+1)
+        if not self.game.world.blocks[int(self.pos[0])][int(self.pos[1])].background or not self.game.world.blocks[int(self.pos[0]+0.9)][int(self.pos[1])].background:
+            self.pos[1] = int(self.pos[1]+1)
 
         # Kolizje gracza
         if vector[0] > 0:
@@ -152,8 +177,8 @@ class Player:
             self.pos[1] = len(self.game.world.blocks[0]) - 3
         elif self.pos[1] < 0:
             self.pos[1] = 0
-        elif self.pos[0] > len(self.game.world.blocks)-3:
-            self.pos[0] = len(self.game.world.blocks)-3
+        elif self.pos[0] > len(self.game.world.blocks)-2:
+            self.pos[0] = len(self.game.world.blocks)-2
         elif self.pos[0] < 1:
             self.pos[0] = 1
             

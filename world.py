@@ -9,7 +9,7 @@ destroy_stages = [
 
 
 class World:
-    def __init__(self):
+    def __init__(self, world_size=5000):
         # 1000x600
         self.blocks = []
         self.time_in_game = 0
@@ -21,7 +21,7 @@ class World:
         plains = 0
         flower_pos = random.randint(6, 10)
 
-        for i in range(1200):
+        for i in range(world_size):
             tmp = [Block(4)]
             for j in range(256):
                 if j < random_height - 4:
@@ -53,9 +53,7 @@ class World:
                 tmp[tree_height - 3], self.blocks[i - 4][tree_height - 3] = Block(7, True, True), Block(7, True, True)
 
             if flower_pos == i:
-                if tmp[random_height+1].block_id != 0:
-                    flower_pos += random.randint(1, 3)
-                else:
+                if tmp[random_height+1].block_id == 0:
                     flower_pos += random.randint(5, 15)
                     tmp[random_height+1] = Block(random.randint(30, 36), True, True)
 
@@ -168,9 +166,10 @@ class World:
                 cave_length = random.randint(20, 80)
 
             self.blocks[col][-1] = Block(4)
+
         for i in range(len(self.blocks[0])):
             self.blocks[0][i] = Block(4)
-            self.blocks[len(self.blocks)-2][i] = Block(4)
+            self.blocks[-1][i] = Block(4)
 
     def put_ore(self, pos, id):
         try:

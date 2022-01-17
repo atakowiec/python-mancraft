@@ -1,10 +1,13 @@
+import math
 import random
-
+import time
 import pygame
 import os
 from game import Game
 import shutil
 from variables import color_modes
+import threading
+
 
 class MainMenu:
     def __init__(self, game):
@@ -23,18 +26,12 @@ class MainMenu:
         self.BUTTON_BORDER = color_modes[self.game.settings["color_mode"]]["main_menu_button_border"]
         self.BACKGROUND = color_modes[self.game.settings["color_mode"]]["main_menu_background"]
 
-        self.FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 90)
-        self.MEDIUM_FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 50)
-        self.SMALL_FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 30)
-        self.TINY_FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 25)
-        self.SMALL_NORMAL_FONT = pygame.font.Font("textures/fonts/Merriweather-Regular.ttf", 30)
-
         # components
-        self.logo_light = self.FONT.render("Mankraft", False, self.TEXT_COLOR)
-        self.logo_dark = self.FONT.render("Mankraft", False, self.SHADOW_COLOR)
-        self.st_button_text = self.SMALL_FONT.render("Singleplayer", False, self.TEXT_COLOR)
-        self.nd_button_text = self.SMALL_FONT.render("Options", False, self.TEXT_COLOR)
-        self.rd_button_text = self.SMALL_FONT.render("Exit", False, self.TEXT_COLOR)
+        self.logo_light = self.game.FONT.render("Mankraft", False, self.TEXT_COLOR)
+        self.logo_dark = self.game.FONT.render("Mankraft", False, self.SHADOW_COLOR)
+        self.st_button_text = self.game.SMALL_FONT.render("Singleplayer", False, self.TEXT_COLOR)
+        self.nd_button_text = self.game.SMALL_FONT.render("Options", False, self.TEXT_COLOR)
+        self.rd_button_text = self.game.SMALL_FONT.render("Exit", False, self.TEXT_COLOR)
 
         # Loading world list
         self.scroll_offset = 0
@@ -43,16 +40,26 @@ class MainMenu:
         self.world_list_surface = pygame.Surface((420, 100*len(self.world_list)), pygame.SRCALPHA)
         self.world_list_surface.convert_alpha()
 
-        self.entered_name = ""
-        self.input_focus = False
-        self.cursor_counter = 0
 
         self.options_buttons = [
-            [50, 520, 250, 80, self.SMALL_FONT.render("Go back", False, self.TEXT_COLOR)],
-            [700, 520, 250, 80, self.SMALL_FONT.render("Credits", False, self.TEXT_COLOR)],
-            [50, 100, 400, 80, self.SMALL_FONT.render("Color mode: "+self.game.settings["color_mode"].replace("_", " "), False, self.TEXT_COLOR)]
+            [50, 520, 250, 80, self.game.SMALL_FONT.render("Go back", False, self.TEXT_COLOR)],
+            [700, 520, 250, 80, self.game.SMALL_FONT.render("Credits", False, self.TEXT_COLOR)],
+            [50, 100, 400, 80, self.game.SMALL_FONT.render("Color mode: "+self.game.settings["color_mode"].replace("_", " "), False, self.TEXT_COLOR)]
         ]
 
+        self.input_focus = -1
+        self.cursor_counter = 0
+        self.entered_values = ["", ""]
+        self.world_creation_components = [
+            ["input", 250, 50, 500, 80],
+            ["input", 250, 150, 200, 80],
+            ["button", 300, 400, 400, 80, self.game.SMALL_FONT.render("Create", False, self.TEXT_COLOR)],
+            ["text", 150, 75, self.game.SMALL_FONT.render("Name:", False, self.TEXT_COLOR)],
+            ["text", 95, 175, self.game.SMALL_FONT.render("World size:", False, self.TEXT_COLOR)]
+        ]
+
+    def create_game_instance(self, world_id):
+        self.game.game = Game(self.game, world_id)
 
     def update(self):
         # tło
@@ -69,11 +76,11 @@ class MainMenu:
                 self.splash_scale_change *= -1
             self.splash_scale -= self.splash_scale_change
 
-            text = self.TINY_FONT.render(self.splash_text, False, (0,0,0))
+            text = self.game.TINY_FONT.render(self.splash_text, False, (0,0,0))
             text = pygame.transform.rotate(text, 25)
             self.screen.blit(pygame.transform.scale(text, [int(i*self.splash_scale) for i in text.get_size()]), ((self.screen.get_width()+self.logo_light.get_width())/2 - text.get_width()/2, 50+self.logo_light.get_height()-text.get_height()/2))
 
-            text = self.TINY_FONT.render(self.splash_text, False, (255,255,255))
+            text = self.game.TINY_FONT.render(self.splash_text, False, (255,255,255))
             text = pygame.transform.rotate(text, 25)
             self.screen.blit(pygame.transform.scale(text, [int(i*self.splash_scale) for i in text.get_size()]), ((self.screen.get_width()+self.logo_light.get_width())/2 - text.get_width()/2, 48+self.logo_light.get_height()-text.get_height()/2))
 
@@ -128,7 +135,7 @@ class MainMenu:
                 color = self.BUTTON_BG_HOVER
             pygame.draw.rect(self.screen, self.BUTTON_BORDER, rect)
             pygame.draw.rect(self.screen, color, (55, 55, 240, 70))
-            text = self.SMALL_FONT.render("New World", False, self.TEXT_COLOR)
+            text = self.game.SMALL_FONT.render("New World", False, self.TEXT_COLOR)
             self.screen.blit(text, (175 - text.get_width() / 2, 90 - text.get_height() / 2))
 
             rect = pygame.Rect(50, 150, 250, 80)
@@ -138,13 +145,13 @@ class MainMenu:
                 color = self.BUTTON_BG_HOVER
             if self.delete_world:
                 color = (90, 90, 90)
-                text = self.SMALL_FONT.render("Click world to delete", False, self.TEXT_COLOR)
-                self.screen.blit(self.SMALL_FONT.render("Click world to delete", False, (0,0,0)), (177 - text.get_width() / 2, 252))
+                text = self.game.SMALL_FONT.render("Click world to delete", False, self.TEXT_COLOR)
+                self.screen.blit(self.game.SMALL_FONT.render("Click world to delete", False, (0,0,0)), (177 - text.get_width() / 2, 252))
                 self.screen.blit(text, (175 - text.get_width() / 2, 250))
 
             pygame.draw.rect(self.screen, self.BUTTON_BORDER, rect)
             pygame.draw.rect(self.screen, color, (55, 155, 240, 70))
-            text = self.SMALL_FONT.render("Delete World", False, self.TEXT_COLOR)
+            text = self.game.SMALL_FONT.render("Delete World", False, self.TEXT_COLOR)
             self.screen.blit(text, (175 - text.get_width() / 2, 190 - text.get_height() / 2))
 
             rect = pygame.Rect(50, 520, 250, 80)
@@ -154,7 +161,7 @@ class MainMenu:
                 color = self.BUTTON_BG_HOVER
             pygame.draw.rect(self.screen, self.BUTTON_BORDER, rect)
             pygame.draw.rect(self.screen, color, (55, 525, 240, 70))
-            text = self.SMALL_FONT.render("Go Back", False, self.TEXT_COLOR)
+            text = self.game.SMALL_FONT.render("Go Back", False, self.TEXT_COLOR)
             self.screen.blit(text, (175 - text.get_width() / 2, 560 - text.get_height() / 2))
 
             rect = pygame.Rect(900, 230, 80, 80)
@@ -164,7 +171,7 @@ class MainMenu:
                 color = self.BUTTON_BG_HOVER
             pygame.draw.rect(self.screen, self.BUTTON_BORDER, rect)
             pygame.draw.rect(self.screen, color, (905, 235, 70, 70))
-            text = self.SMALL_NORMAL_FONT.render("↑", False, self.TEXT_COLOR)
+            text = self.game.SMALL_NORMAL_FONT.render("↑", False, self.TEXT_COLOR)
             self.screen.blit(text, (940 - text.get_width() / 2, 270 - text.get_height() / 2))
 
             rect = pygame.Rect(900, 320, 80, 80)
@@ -174,16 +181,16 @@ class MainMenu:
                 color = self.BUTTON_BG_HOVER
             pygame.draw.rect(self.screen, self.BUTTON_BORDER, rect)
             pygame.draw.rect(self.screen, color, (905, 325, 70, 70))
-            text = self.SMALL_NORMAL_FONT.render("↓", False, self.TEXT_COLOR)
+            text = self.game.SMALL_NORMAL_FONT.render("↓", False, self.TEXT_COLOR)
             self.screen.blit(text, (940 - text.get_width() / 2, 360 - text.get_height() / 2))
 
             # World list
             hovered_world = None
             for i, world_data in enumerate(self.world_list):
                 rect = pygame.Rect(450, 50+self.scroll_offset+(i*100), 400, 90)
-                number = self.MEDIUM_FONT.render(str(i+1)+".", False, (255,255,255))
-                name = self.SMALL_FONT.render(world_data[1], False, (255,255,255))
-                # date = self.SMALL_FONT.render(world_data[2], False, (255,255,255))
+                number = self.game.MEDIUM_FONT.render(str(i+1)+".", False, (255,255,255))
+                name = self.game.SMALL_FONT.render(world_data[1], False, (255,255,255))
+                # date = self.game.SMALL_FONT.render(world_data[2], False, (255,255,255))
                 color = self.BUTTON_BG
                 if rect.collidepoint(mouse_pos):
                     hovered_world = i
@@ -219,9 +226,9 @@ class MainMenu:
                     self.screen_state = 0
                 elif hovered_world is not None:
                     if not self.delete_world:
-                        self.game.game = Game(self.game, self.world_list[hovered_world][3])
-                        self.game.state = "game"
-                        del self
+                        threading.Thread(target=self.create_game_instance, args=self.world_list[hovered_world][3]).start()
+                        self.game.loading_screen_state = 0
+                        self.screen_state = 5
                     else:
                         # deleting world
                         self.delete_world = False
@@ -231,72 +238,68 @@ class MainMenu:
 
 
         elif self.screen_state == 2:
-            hovered = [False, False, False]
+            # world creating screen
+            hovered = None
+            for i, e in enumerate(self.world_creation_components):
+                if e[0] == "button":
+                    rect = pygame.Rect(e[1], e[2], e[3], e[4])
+                    color = self.BUTTON_BG
+                    if rect.collidepoint(mouse_pos):
+                        hovered = i
+                        color = self.BUTTON_BG_HOVER
+                    pygame.draw.rect(self.screen, self.BUTTON_BORDER, rect)
+                    pygame.draw.rect(self.screen, color, (e[1]+5, e[2]+5, e[3]-10, e[4]-10))
+                    self.screen.blit(e[5], (e[1]+e[3]/2 - e[5].get_width()/2, e[2]+e[4]/2 - e[5].get_height() / 2))
+                elif e[0] == "text":
+                    self.screen.blit(e[3], (e[1], e[2]))
+                elif e[0] == "input":
+                    rect = pygame.Rect(e[1], e[2], e[3], e[4])
+                    color = self.BUTTON_BG
+                    if rect.collidepoint(mouse_pos):
+                        hovered = i
+                        color = self.BUTTON_BG_HOVER
+                    cursor = ""
+                    if self.input_focus == i:
+                        color = self.BUTTON_BG_HOVER
+                        if self.cursor_counter % 30 < 15:
+                            cursor = "|"
+                    pygame.draw.rect(self.screen, self.BUTTON_BORDER, rect)
+                    pygame.draw.rect(self.screen, color, (e[1]+5, e[2]+5, e[3]-10, e[4]-10))
+                    text = self.game.SMALL_FONT.render(self.entered_values[i]+cursor, False, self.TEXT_COLOR)
+                    self.screen.blit(text, (e[1]+15, e[2]+e[4]/2 - text.get_height() / 2))
 
-            rect = pygame.Rect(250, 50, 500, 80)
-            color = self.BUTTON_BG
             self.cursor_counter += 1
-            temp = ""
-            if rect.collidepoint(mouse_pos):
-                hovered[0] = True
-                color = self.BUTTON_BG_HOVER
-            if self.input_focus:
-                if self.cursor_counter % 40 < 20:
-                    temp = "|"
-                color = (90, 90, 90)
-
-            pygame.draw.rect(self.screen, self.BUTTON_BORDER, rect)
-            pygame.draw.rect(self.screen, color, (255, 55, 490, 70))
-            text = self.SMALL_FONT.render("Name:", False, self.TEXT_COLOR)
-            self.screen.blit(text, (175 - text.get_width() / 2, 90 - text.get_height() / 2))
-            text = self.SMALL_FONT.render(self.entered_name + temp, False, self.TEXT_COLOR)
-            self.screen.blit(text, (270, 90 - text.get_height() / 2))
-
-            rect = pygame.Rect(375, 150, 250, 80)
-            color = self.BUTTON_BG
-            if rect.collidepoint(mouse_pos):
-                hovered[1] = True
-                color = self.BUTTON_BG_HOVER
-            pygame.draw.rect(self.screen, self.BUTTON_BORDER, rect)
-            pygame.draw.rect(self.screen, color, (380, 155, 240, 70))
-            text = self.SMALL_FONT.render("Create!", False, self.TEXT_COLOR)
-            self.screen.blit(text, (500 - text.get_width() / 2, 190 - text.get_height() / 2))
-
-            rect = pygame.Rect(50, 520, 250, 80)
-            color = self.BUTTON_BG
-            if rect.collidepoint(mouse_pos):
-                hovered[2] = True
-                color = self.BUTTON_BG_HOVER
-            pygame.draw.rect(self.screen, self.BUTTON_BORDER, rect)
-            pygame.draw.rect(self.screen, color, (55, 525, 240, 70))
-            text = self.SMALL_FONT.render("Go Back", False, self.TEXT_COLOR)
-            self.screen.blit(text, (175 - text.get_width() / 2, 560 - text.get_height() / 2))
-
-            if pygame.mouse.get_pressed(3)[0]:
-                if hovered[0]:
-                    self.input_focus = True
+            if 1 in self.game.mouse_press:
+                if hovered == 0 or hovered == 1:
+                    self.input_focus = hovered
                 else:
-                    self.input_focus = False
-                    if hovered[1]:
-                        if self.entered_name == "":
-                            self.entered_name = "New World"
-                        self.game.game = Game(self.game, -1, self.entered_name)
+                    self.input_focus = -1
+                    if hovered == 2:
+                        world_name = self.entered_values[0]
+                        if world_name == "":
+                            world_name = None
+
+                        world_size = self.entered_values[1]
+                        if world_size == "":
+                            world_size = 5000
+                        elif int(world_size) > 20000:
+                            world_size = 20000
+                        elif int(world_size) < 3:
+                            world_size = 3
+                        else:
+                            world_size = int(world_size)
+
+                        self.game.game = Game(self.game, -1, world_name, world_size)
                         self.game.state = "game"
-                        self.world_list = self.get_world_list()
-                        self.world_list_surface = pygame.Surface((420, 100 * len(self.world_list)), pygame.SRCALPHA)
-                        self.input_focus = False
-                        self.entered_name = ""
+                        self.entered_values = ["", ""]
+                        self.input_focus = -1
                         del self
-                    elif hovered[2]:
-                        self.entered_name = ""
-                        self.input_focus = False
-                        self.screen_state = 1
 
         elif self.screen_state == 3:
             # options screen
-            text = self.MEDIUM_FONT.render("Options", False, (0,0,0))
+            text = self.game.MEDIUM_FONT.render("Options", False, (0,0,0))
             self.screen.blit(text, (502 - text.get_width()/2, 22))
-            text = self.MEDIUM_FONT.render("Options", False, (255,255,255))
+            text = self.game.MEDIUM_FONT.render("Options", False, (255,255,255))
             self.screen.blit(text, (500 - text.get_width()/2, 20))
             hovered = None
             for i, e in enumerate(self.options_buttons):
@@ -324,20 +327,20 @@ class MainMenu:
 
         elif self.screen_state == 4:
             # creators screen
-            text = self.MEDIUM_FONT.render("Credits", False, (0,0,0))
+            text = self.game.MEDIUM_FONT.render("Credits", False, (0,0,0))
             self.screen.blit(text, (502 - text.get_width()/2, 22))
-            text = self.MEDIUM_FONT.render("Credits", False, (255,255,255))
+            text = self.game.MEDIUM_FONT.render("Credits", False, (255,255,255))
             self.screen.blit(text, (500 - text.get_width()/2, 20))
 
-            text = self.MEDIUM_FONT.render("Wszystko (prawie): Mateusz Cieszczyk", False, (0,0,0))
+            text = self.game.MEDIUM_FONT.render("Wszystko (prawie): Mateusz Cieszczyk", False, (0,0,0))
             self.screen.blit(text, (505 - text.get_width()/2+3, 203))
-            text = self.MEDIUM_FONT.render("Wszystko (prawie): Mateusz Cieszczyk", False, (255,255,255))
+            text = self.game.MEDIUM_FONT.render("Wszystko (prawie): Mateusz Cieszczyk", False, (255,255,255))
             self.screen.blit(text, (505 - text.get_width()/2, 200))
 
             temp = 505 - text.get_width()/2
-            text = self.SMALL_FONT.render("Kwiaty i chmury: Karol Lukiewski", False, (0,0,0))
+            text = self.game.SMALL_FONT.render("Kwiaty i chmury: Karol Lukiewski", False, (0,0,0))
             self.screen.blit(text, (temp+3, 303))
-            text = self.SMALL_FONT.render("Kwiaty i chmury: Karol Lukiewski", False, (255,255,255))
+            text = self.game.SMALL_FONT.render("Kwiaty i chmury: Karol Lukiewski", False, (255,255,255))
             self.screen.blit(text, (temp, 300))
 
             rect = pygame.Rect(50, 520, 250, 80)
@@ -348,8 +351,24 @@ class MainMenu:
                     self.screen_state = 3
             pygame.draw.rect(self.screen, self.BUTTON_BORDER, rect)
             pygame.draw.rect(self.screen, color, (55, 525, 240, 70))
-            text = self.SMALL_FONT.render("Go Back", False, self.TEXT_COLOR)
+            text = self.game.SMALL_FONT.render("Go Back", False, self.TEXT_COLOR)
             self.screen.blit(text, (175 - text.get_width() / 2, 560 - text.get_height() / 2))
+
+        elif self.screen_state == 5:
+            # loading screen
+            message = ["Reading world file", "Loading world data", "Loading player data", "Creating entities", "Dropping items", "Loading furnaces", "Loading other data"][math.ceil(self.game.loading_screen_state)]
+            text = self.game.SMALL_FONT.render(message, False, (0,0,0))
+            self.screen.blit(text, (self.screen.get_width()/2 - text.get_width()/2 + 2, 422))
+            text = self.game.SMALL_FONT.render(message, False, (255,255,255))
+            self.screen.blit(text, (self.screen.get_width()/2 - text.get_width()/2, 420))
+
+            pygame.draw.rect(self.screen, self.BUTTON_BORDER, (100, 300, 800, 60))
+            pygame.draw.rect(self.screen, self.BUTTON_BG, (110, 310, 780, 40))
+            pygame.draw.rect(self.screen, (255,255,255), (110, 310, int(780 * (self.game.loading_screen_state % 1)), 40))
+
+            if self.game.loading_screen_state == 6:
+                self.game.state = "game"
+                del self
 
     def get_world_list(self):
         temp = []
