@@ -3,6 +3,7 @@ import pygame
 entity_types = [
     # [name, maxhp, left_image, right_image, size]
     ["Pig", 10, pygame.image.load("textures/entity/pig_left.png"), pygame.image.load("textures/entity/pig_right.png"), (50, 30)],
+    ["Boots", 10, pygame.image.load("textures/entity/boots.png"), pygame.image.load("textures/entity/boots.png"), (28, 20)],
 ]
 
 fuel_list = {
@@ -282,7 +283,7 @@ block_type = {
     },
     25: {
         "name": "dimensioner",
-        "breaking_time": 1.5,
+        "breaking_time": 2.5,
         "txt": pygame.image.load("textures/blocks/dimensioner.png"),
         "type": "block",
         "crafting_recipe": [[[1,1],[1,1]]],
@@ -290,6 +291,32 @@ block_type = {
         "default_behind": True,
         "drop": [25],
         "amount": [1],
+        "drop_probability": 1,
+        "intended_tool": [1],
+        "required_tool_level": 1
+    },
+    26: {
+        "name": "nether reactor core",
+        "breaking_time": 2.5,
+        "txt": pygame.image.load("textures/blocks/nether_core.png"),
+        "type": "block",
+        "crafting_recipe": [[[18,16,18],[18,16,18],[18,16,18]]],
+        "crafting_amount": 1,
+        "default_behind": False,
+        "drop": [26],
+        "amount": [1],
+        "drop_probability": 1,
+        "intended_tool": [1],
+        "required_tool_level": 1
+    },
+    27: {
+        "name": "finished nether reactor core",
+        "breaking_time": 2.5,
+        "txt": pygame.image.load("textures/blocks/finished_nether_core.png"),
+        "type": "block",
+        "default_behind": False,
+        "drop": [27],
+        "amount": [0],
         "drop_probability": 1,
         "intended_tool": [1],
         "required_tool_level": 1
@@ -583,6 +610,117 @@ block_type = {
         "drop_probability": 1,
         "crafting_recipe": [[[20,20,20],[20,20,20],[20,20,20]]],
         "crafting_amount": 1,
+        "intended_tool": [1],
+        "required_tool_level": 1
+    },
+    66: {
+        "name": "netherrack",
+        "breaking_time": 1,
+        "txt": pygame.image.load("textures/blocks/netherrack.png"),
+        "type": "block",
+        "drop": [66],
+        "amount": [1],
+        "drop_probability": 1,
+        "intended_tool": [1],
+        "required_tool_level": 1
+    },
+    67: {
+        "name": "glowstone",
+        "breaking_time": 1,
+        "txt": pygame.image.load("textures/blocks/glowstone.png"),
+        "type": "block",
+        "drop": [68],
+        "amount": [2,3,4],
+        "drop_probability": 1,
+        "crafting_recipe": [[[68,68],[68,68]]],
+        "crafting_amount": 1,
+    },
+    68: {
+        "name": "glowstone dust",
+        "txt": pygame.image.load("textures/items/glowstone_dust.png"),
+        "type": "item"
+    },
+    69: {
+        "name": "quartz",
+        "txt": pygame.image.load("textures/items/quartz.png"),
+        "type": "item"
+    },
+    70: {
+        "name": "quartz ore",
+        "breaking_time": 1,
+        "txt": pygame.image.load("textures/blocks/nether_quartz_ore.png"),
+        "type": "block",
+        "drop": [69],
+        "amount": [1],
+        "drop_probability": 1,
+        "intended_tool": [1],
+        "required_tool_level": 2
+    },
+    71: {
+        "name": "quartz block",
+        "breaking_time": 1,
+        "txt": pygame.image.load("textures/blocks/quartz_block.png"),
+        "type": "block",
+        "drop": [71],
+        "amount": [1],
+        "drop_probability": 1,
+        "crafting_recipe": [[[69,69],[69,69]]],
+        "crafting_amount": 1,
+        "intended_tool": [1],
+        "required_tool_level": 1
+    },
+    72: {
+        "name": "soul sand",
+        "breaking_time": 1,
+        "txt": pygame.image.load("textures/blocks/soul_sand.png"),
+        "type": "block",
+        "drop": [72],
+        "amount": [1],
+        "drop_probability": 1,
+        "intended_tool": [3],
+        "required_tool_level": 0
+    },
+    73: {
+        "name": "obsidian",
+        "breaking_time": 40,
+        "txt": pygame.image.load("textures/blocks/obsidian.png"),
+        "type": "block",
+        "drop": [73],
+        "amount": [1],
+        "drop_probability": 1,
+        "intended_tool": [1],
+        "required_tool_level": 4
+    },
+    74: {
+        "name": "crying obsidian",
+        "breaking_time": 40,
+        "txt": pygame.image.load("textures/blocks/crying_obsidian.png"),
+        "type": "block",
+        "drop": [74],
+        "amount": [1],
+        "drop_probability": 1,
+        "intended_tool": [1],
+        "required_tool_level": 4
+    },
+    75: {
+        "name": "ancient debris",
+        "breaking_time": 30,
+        "txt": pygame.image.load("textures/blocks/ancient_debris.png"),
+        "type": "block",
+        "drop": [75],
+        "amount": [1],
+        "drop_probability": 1,
+        "intended_tool": [1],
+        "required_tool_level": 4
+    },
+    76: {
+        "name": "nether bricks",
+        "breaking_time": 2,
+        "txt": pygame.image.load("textures/blocks/nether_bricks.png"),
+        "type": "block",
+        "drop": [76],
+        "amount": [1],
+        "drop_probability": 1,
         "intended_tool": [1],
         "required_tool_level": 1
     }

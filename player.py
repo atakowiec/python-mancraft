@@ -205,6 +205,21 @@ class Player:
                 elif clicked_block_type == 25:
                     self.game.to_update = [self.game, DimensionerView(self.game)]
                     self.game.screen_state = "inventory"
+                elif clicked_block_type == 26:
+                    pattern = [
+                        63,5,63,
+                        5,26,5,
+                        0,5,0
+                    ]
+                    block = [i-1 for i in self.game.clicked_block]
+                    correct = True
+                    for i in range(9):
+                        if self.game.world.blocks[block[0]+(i%3)][block[1]+(i//3)].block_id != pattern[i]:
+                            correct = False
+                            break
+
+                    if correct and not self.game.nether_reactor_core.running:
+                        self.game.nether_reactor_core.create_reactor(self.game.clicked_block)
 
         if self.game.mouse_click[0] and self.game.clicked_block is not None and self.game.line_length <= self.game.player.range_of_hand * 20 and not self.game.paused:
             if self.game.clicked_block == self.game.last_block:
@@ -265,17 +280,21 @@ class Player:
         if pressed[pygame.K_DOWN]:
             self.pos[1] -= 2
         if pressed[pygame.K_UP]:
-            self.pos[1] += 1
+            self.pos[1] += 2
         if pressed[pygame.K_LEFT]:
-            self.pos[0] -= 1
+            self.pos[0] -= 2
         if pressed[pygame.K_RIGHT]:
-            self.pos[0] += 1
+            self.pos[0] += 2
         if pressed[pygame.K_F1]:
-            self.game.world.time_in_game += (self.game.DAY_DURATION*0.01)
+            self.game.world.time_in_game += 100
+            self.game.game.TICK = 200
+        else:
+            if self.game.game.TICK != 30:
+                self.game.game.TICK = 30
         if pressed[pygame.K_F2]:
             self.game.world.blocks[int(self.pos[0])][int(self.pos[1])-1].block_id = random.randint(1, 15)
         if pressed[pygame.K_F3]:
-            self.game.entity_list.append(Entity(self.game, 0, [self.pos[0], self.pos[1]]))
+            self.game.entity_list.append(Entity(self.game, 1, [self.pos[0], self.pos[1]]))
             
         
 

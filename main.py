@@ -1,6 +1,9 @@
 import json
+import threading
 
 import pygame
+
+import variables
 from main_menu import MainMenu
 from game import Game
 import os
@@ -21,13 +24,13 @@ class Main:
         self.mouse_hold = []
         self.loading_screen_state = 0
 
+        # constants
         self.FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 90)
         self.MEDIUM_FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 50)
         self.SMALL_FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 30)
         self.TINY_FONT = pygame.font.Font("textures/fonts/Minecraft.ttf", 25)
         self.SMALL_NORMAL_FONT = pygame.font.Font("textures/fonts/Merriweather-Regular.ttf", 30)
 
-        # constants
         self.TICK = 30
         self.GAME_PATH = os.path.join(os.environ["appdata"], "mankraft")
 
@@ -38,6 +41,7 @@ class Main:
         with open(os.path.join(self.GAME_PATH, "options.txt")) as file:
             self.settings = json.loads(file.read())
 
+        # threading.Thread(target=self.console).start()
 
         self.game = None
         self.main_menu = MainMenu(self)
@@ -85,6 +89,30 @@ class Main:
         # Zapisywanie ustawien
         with open(os.path.join(self.GAME_PATH, "options.txt"), "w") as file:
             file.write(json.dumps(self.settings, indent=1))
+
+    def console(self):
+        pass
+        while self.running:
+            command = input().split()
+            if command[0] == "give":
+                if self.game is None:
+                    print("Game is not started")
+                elif len(command) < 2:
+                    print("Expected 1 argument!\ngive {id} [count]")
+                else:
+                    try:
+                        if int(command[1]) in variables.block_type.keys():
+                            count = 1
+                            if len(command) >= 3:
+                                count = int(command[2])
+                            if count < 1:
+                                count = 1
+                            for _ in range(count):
+                                self.game.create_item_on_ground(int(command[1]), self.game.player.pos)
+                    except ValueError:
+                        print("Invalid arguments")
+            else:
+                print("Unknown command!")
 
     def create_default_tree(self):
         if not os.path.exists(self.GAME_PATH):

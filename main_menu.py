@@ -38,7 +38,6 @@ class MainMenu:
         self.world_list = self.get_world_list()
 
         self.world_list_surface = pygame.Surface((420, 100*len(self.world_list)), pygame.SRCALPHA)
-        self.world_list_surface.convert_alpha()
 
 
         self.options_buttons = [
@@ -104,8 +103,7 @@ class MainMenu:
                 color = self.BUTTON_BG_HOVER
             pygame.draw.rect(self.screen, self.BUTTON_BORDER, rect, border_radius=10)
             pygame.draw.rect(self.screen, color, pygame.Rect(305, 325, 390, 80), border_radius=10)
-            self.screen.blit(self.nd_button_text,
-                             (500 - (self.nd_button_text.get_width() / 2), 365 - self.nd_button_text.get_height() / 2))
+            self.screen.blit(self.nd_button_text, (500 - (self.nd_button_text.get_width() / 2), 365 - self.nd_button_text.get_height() / 2))
 
             color = self.BUTTON_BG
             rect = pygame.Rect(300, 440, 400, 90)
@@ -277,7 +275,7 @@ class MainMenu:
                     if hovered == 2:
                         world_name = self.entered_values[0]
                         if world_name == "":
-                            world_name = None
+                            world_name = "New World"
 
                         world_size = self.entered_values[1]
                         if world_size == "":
@@ -291,6 +289,8 @@ class MainMenu:
 
                         self.game.game = Game(self.game, -1, world_name, world_size)
                         self.game.state = "game"
+                        self.world_list = self.get_world_list()
+                        self.world_list_surface = pygame.Surface((420, 100 * len(self.world_list)), pygame.SRCALPHA)
                         self.entered_values = ["", ""]
                         self.input_focus = -1
                         del self

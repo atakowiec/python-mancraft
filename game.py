@@ -14,6 +14,7 @@ from itemstack import ItemStack
 from entity import Entity
 from furnace_view import FurnaceView
 from variables import block_type, color_modes
+from nether_reactor import NetherReactorCore
 
 
 class Game:
@@ -26,6 +27,7 @@ class Game:
         self.pause_menu = PauseMenu(self)
         self.furnace_view = FurnaceView(self)
         self.inventory_view = InventoryView(self)
+        self.nether_reactor_core = NetherReactorCore(self)
         self.block_type = block_type
 
         self.world_id = world_id
@@ -138,6 +140,7 @@ class Game:
 
         if not self.paused:
             self.world.time_in_game += 1
+            self.nether_reactor_core.update()
 
         mouse_pos = pygame.mouse.get_pos()
         self.last_block = self.clicked_block
